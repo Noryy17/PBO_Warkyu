@@ -1,0 +1,68 @@
+@startuml
+start
+
+partition Customer {
+  :Customer membuka aplikasi Digital Wakrun;
+  :Login ke sistem;
+
+  if (Login berhasil?) then (Ya)
+    :Menampilkan Menu Online;
+    :Customer memilih kategori menu;
+    :Customer melihat detail menu;
+
+    if (Customer ingin memesan makanan?) then (Ya)
+      :Input Nomor Meja;
+      :Validasi Nomor Meja;
+      if (Nomor meja valid?) then (Ya)
+        :Customer menambahkan makanan ke pesanan;
+        :Hitung Total Pesanan;
+
+        if (Customer ingin menambah catatan?) then (Ya)
+          :Tambah Catatan Khusus;
+        endif
+
+        if (Customer memiliki promo/voucher?) then (Ya)
+          :Terapkan Promo/Voucher;
+          :Hitung Ulang Total Pesanan;
+        endif
+
+        :Customer memilih metode pembayaran;
+        :Bayar Pesanan via Payment Gateway;
+
+        if (Pembayaran berhasil?) then (Ya)
+          :Kirim Notifikasi ke Dapur;
+          :Cetak Notifikasi Dapur;
+          :Dapur menyiapkan pesanan;
+          :Perbarui Status Pesanan;
+        else (Gagal)
+          :Tampilkan pesan error pembayaran;
+          :Customer dapat Batalkan Pesanan;
+        endif
+
+      else (Tidak)
+        :Tampilkan pesan meja tidak valid;
+      endif
+    else (Tidak)
+      :Customer hanya melihat menu;
+    endif
+
+    :Customer melihat riwayat pesanan;
+    :Logout dari sistem;
+  else (Tidak)
+    :Tampilkan pesan error login;
+  endif
+}
+
+partition Admin {
+  :Admin login ke sistem;
+  if (Login berhasil?) then (Ya)
+    :Generate laporan penjualan bulanan;
+    :Ekspor laporan ke Excel;
+    :Logout dari sistem;
+  else (Tidak)
+    :Tampilkan pesan error login;
+  endif
+}
+
+stop
+@enduml

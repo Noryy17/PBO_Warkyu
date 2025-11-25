@@ -1,0 +1,101 @@
+@startuml
+top to bottom direction
+scale 600 height
+
+skinparam usecase {
+  BackgroundColor<<customer>> #B3D9FF
+  BackgroundColor<<admin>> #C5E1A5
+  BackgroundColor White
+  BorderColor Black
+}
+
+skinparam rectangle {
+  BackgroundColor White
+  BorderColor Black
+  FontSize 14
+  FontStyle bold
+}
+
+'=== ACTORS ===
+actor "Customer" as Customer
+actor "Dapur" as Kitchen  
+actor "Admin" as Admin
+actor "Payment\nGateway" as PG
+
+'=== SYSTEM ===
+rectangle "Sistem Digital Wakrun" {
+  
+  (Kirim Notifikasi\nke Dapur) as UC1
+  (Checkout & Pembayaran) <<customer>> as UC2
+  (Daftar Akun) as UC3
+  (Lihat & Pilih Menu) <<customer>> as UC4
+  (Mengelola Keranjang\nPesanan) <<customer>> as UC5
+  (Lihat Riwayat\nPesanan) <<customer>> as UC6
+  (Login) as UC7
+  (Mengelola Data Menu) <<admin>> as UC8
+  (Mengelola Pesanan Masuk) <<admin>> as UC9
+  (Kelola Laporan\nPenjualan) <<admin>> as UC10
+  (Konfirmasi Pembayaran) <<admin>> as UC11
+  
+  UC1 -[hidden]-> UC2
+  UC2 -[hidden]-> UC3
+  UC3 -[hidden]-> UC4
+  UC4 -[hidden]-> UC5
+  UC5 -[hidden]-> UC6
+  UC6 -[hidden]-> UC7
+  UC7 -[hidden]-> UC8
+  UC8 -[hidden]-> UC9
+  UC9 -[hidden]-> UC10
+  UC10 -[hidden]-> UC11
+}
+
+'=== CONNECTIONS ===
+Customer --> UC2
+Customer --> UC3
+Customer --> UC4
+Customer --> UC5
+Customer --> UC6
+
+Kitchen --> UC1
+
+Admin --> UC8
+Admin --> UC9
+Admin --> UC10
+Admin --> UC11
+
+UC2 --> PG : proses pembayaran
+
+'=== INCLUDE/EXTEND ===
+UC2 .up.> UC1 : <<include>>
+
+UC2 .> UC7 : <<extend>>
+UC4 .> UC7 : <<extend>>
+UC5 .> UC7 : <<extend>>
+UC6 .> UC7 : <<extend>>
+
+UC8 .> UC7 : <<extend>>
+UC9 .> UC7 : <<extend>>
+UC10 .> UC7 : <<extend>>
+UC11 .> UC7 : <<extend>>
+
+UC11 .up.> UC1 : <<extend>>
+UC1 .down.> UC7 : <<extend>>
+
+'=== NOTES ===
+note right of Customer
+Customer dapat:
+• Lihat menu
+• Kelola pesanan
+• Checkout & bayar
+• Lihat riwayat
+end note
+
+note right of Admin
+Admin dapat:
+• Kelola menu
+• Kelola pesanan
+• Konfirmasi pembayaran
+• Lihat laporan
+end note
+
+@enduml

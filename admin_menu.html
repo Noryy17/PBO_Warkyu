@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Kelola Menu - Digital Wakrun</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    
+    <nav class="admin-nav">
+        <div class="container">
+            <h3>Admin Digital Wakrun</h3>
+            <ul>
+                <li><a href="admin_dashboard.html">Laporan Penjualan</a></li>
+                <li><a href="admin_menu.html" class="active">Kelola Menu</a></li>
+                <li><a href="#" id="adminLogout">Logout</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="admin-header">
+            <h2>Kelola Data Menu</h2>
+        </div>
+
+        <div class="admin-content-split">
+            
+            <div class="admin-list-container">
+                <h3>Daftar Menu Saat Ini</h3>
+                <table class="laporan-tabel" id="adminMenuTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nama Menu</th>
+                            <th>Kategori</th>
+                            <th>Harga</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminMenuList">
+                        </tbody>
+                </table>
+            </div>
+
+            <div class="admin-form-container">
+                <h3 id="formMenuTitle">Tambah Menu Baru</h3>
+                <form id="formMenu">
+                    <input type="hidden" id="menuId" name="menuId">
+                    
+                    <div class="input-group">
+                        <label for="menuNama">Nama Menu</label>
+                        <input type="text" id="menuNama" name="menuNama" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="menuKategori">Kategori</label>
+                        <select id="menuKategori" name="menuKategori" required>
+                            <option value="">-- Pilih Kategori --</option>
+                            <option value="indomie">Indomie</option>
+                            <option value="nasi">Nasi</option>
+                            <option value="roti">Roti Bakar</option>
+                            <option value="minuman">Minuman</option>
+                        </select>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="menuHarga">Harga (Rp)</label>
+                        <input type="number" id="menuHarga" name="menuHarga" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="menuGambar">URL Gambar (Opsional)</label>
+                        <input type="text" id="menuGambar" name="menuGambar" placeholder="Contoh: assets/img/nama-gambar.jpg">
+                    </div>
+                    
+                    <button type="submit" class="btn">Simpan Menu</button>
+                    <button type="button" id="btnBatalEdit" class="btn-small btn-batal" style="display: none;">Batal Edit</button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

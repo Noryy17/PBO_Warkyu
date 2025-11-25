@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Digital Wakrun</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    
+    <nav class="admin-nav">
+        <div class="container">
+            <h3>Admin Digital Wakrun</h3>
+          <ul>
+            <li><a href="admin_dashboard.html" class="active">Laporan Penjualan</a></li>
+            <li><a href="admin_menu.html">Kelola Menu</a></li>
+            <li><a href="#" id="adminLogout">Logout</a></li>
+        </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="admin-header">
+            <h2>Laporan Penjualan Bulanan</h2>
+            <button id="btnGenerate" class="btn">Generate Laporan</button>
+        </div>
+
+        <div id="laporanContainer" class="laporan-container" style="display: none;">
+            
+            <h4>Ringkasan Penjualan (November 2025)</h4>
+            <div class="ringkasan-grid">
+                <div class="ringkasan-item">
+                    <p>Total Penjualan</p>
+                    <strong>Rp 4.520.000</strong>
+                </div>
+                <div class="ringkasan-item">
+                    <p>Total Pesanan</p>
+                    <strong>210 Pesanan</strong>
+                </div>
+                <div class="ringkasan-item">
+                    <p>Item Terlaris</p>
+                    <strong>Indomie Goreng Telor</strong>
+                </div>
+            </div>
+
+            <h4>Detail Transaksi (Simulasi)</h4>
+            <table class="laporan-tabel">
+                <thead>
+                    <tr>
+                        <th>ID Pesanan</th>
+                        <th>Meja</th>
+                        <th>Total</th>
+                        <th>Waktu</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>#001</td>
+                        <td>5</td>
+                        <td>Rp 45.000</td>
+                        <td>15 Nov 2025, 19:30</td>
+                    </tr>
+                    <tr>
+                        <td>#002</td>
+                        <td>2</td>
+                        <td>Rp 22.000</td>
+                        <td>15 Nov 2025, 19:35</td>
+                    </tr>
+                    <tr>
+                        <td>#003</td>
+                        <td>10</td>
+                        <td>Rp 78.000</td>
+                        <td>15 Nov 2025, 19:42</td>
+                    </tr>
+                    </tbody>
+            </table>
+            
+            <button id="btnExport" class="btn-small">Ekspor Laporan ke Excel</button>
+        </div>
+
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,652 @@
+/* Reset dasar & font */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+/* Kontainer login */
+.login-container {
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    width: 300px;
+    text-align: center;
+}
+
+h2 {
+    margin-bottom: 1.5rem;
+    color: #333;
+}
+
+/* Grup input (label + input) */
+.input-group {
+    margin-bottom: 1rem;
+    text-align: left;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #555;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box; /* Pastikan padding tidak menambah lebar */
+}
+
+/* Tombol */
+.btn {
+    width: 100%;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 4px;
+    background-color: #007bff;
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn:hover {
+    background-color: #0056b3;
+}
+
+/* Pesan Error */
+.error-message {
+    color: #d9534f;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    display: none; /* Sembunyikan secara default */
+}
+
+/* --- Style Global (Bisa dipakai di banyak halaman) --- */
+.container {
+    width: 90%;
+    max-width: 1000px;
+    margin: 20px auto;
+    padding: 1rem;
+}
+
+.header {
+    background-color: #007bff;
+    color: white;
+    padding: 1rem;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.btn-small {
+    padding: 0.5rem 1rem;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-small:hover {
+    background-color: #218838;
+}
+
+/* --- Halaman Menu --- */
+
+.meja-container {
+    background-color: #fff;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.meja-container label {
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+.meja-container input[type="number"] {
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    width: 80px;
+}
+
+.kategori-container {
+    margin-bottom: 1.5rem;
+}
+
+.btn-kategori {
+    padding: 0.5rem 1rem;
+    border: 1px solid #007bff;
+    background-color: #fff;
+    color: #007bff;
+    border-radius: 20px;
+    cursor: pointer;
+    margin: 5px;
+}
+
+.btn-kategori:hover,
+.btn-kategori.active {
+    background-color: #007bff;
+    color: white;
+}
+
+/* Grid untuk daftar menu */
+.menu-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1.5rem;
+}
+
+/* Tampilan per item menu (card) */
+.menu-item {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    text-align: center;
+    overflow: hidden; /* Agar gambar tidak keluar card */
+}
+
+.menu-item img {
+    width: 100%;
+    height: 120px;
+    object-fit: cover; /* Biar gambar proporsional */
+    background-color: #eee; /* Warna placeholder jika gambar tdk ada */
+}
+
+.menu-item h4 {
+    margin: 0.75rem 0 0.5rem 0;
+    color: #333;
+    font-size: 1rem;
+}
+
+.menu-item .harga {
+    margin: 0 0 0.75rem 0;
+    color: #555;
+    font-weight: bold;
+}
+
+.btn-tambah {
+    width: 80%;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+    border: none;
+    border-radius: 4px;
+    background-color: #17a2b8;
+    color: white;
+    cursor: pointer;
+}
+
+.btn-tambah:hover {
+    background-color: #138496;
+}
+
+/* Ringkasan Keranjang (di bawah) */
+.keranjang-summary {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #fff;
+    padding: 1rem;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-sizing: border-box; /* Pastikan padding tidak menambah lebar */
+}
+
+/* --- Halaman Keranjang/Checkout --- */
+.checkout-container {
+    max-width: 600px;
+    margin: 0 auto; /* Tengah */
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.keranjang-list {
+    margin-bottom: 1rem;
+}
+
+.keranjang-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #eee;
+}
+
+.keranjang-item span:first-child {
+    color: #333;
+}
+.keranjang-item span:last-child {
+    color: #555;
+    font-weight: bold;
+}
+
+.keranjang-total {
+    display: flex;
+    justify-content: space-between;
+    margin: 0.5rem 0;
+}
+.keranjang-total.grand-total {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #000;
+    margin-top: 1rem;
+}
+
+/* Opsi Tambahan */
+.opsi-tambahan {
+    margin: 1.5rem 0;
+}
+
+.opsi-tambahan textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+    height: 80px;
+    font-family: Arial, sans-serif;
+}
+
+.input-group-inline {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+}
+
+.input-group-inline input {
+    flex-grow: 1; /* Ambil sisa ruang */
+    margin-right: 10px;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.promo-message {
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+}
+.promo-message.success {
+    color: #28a745; /* Hijau */
+}
+.promo-message.error {
+    color: #d9534f; /* Merah */
+}
+
+
+/* Metode Pembayaran */
+.metode-pembayaran {
+    margin: 1.5rem 0;
+}
+.metode-pembayaran select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fff; /* Agar terlihat di iOS */
+}
+
+/* Tombol Bayar */
+.btn-bayar {
+    background-color: #28a745; /* Hijau */
+    width: 100%;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+}
+.btn-bayar:hover {
+    background-color: #218838;
+}
+
+.link-kembali {
+    text-align: center;
+    display: block;
+    color: #007bff;
+    text-decoration: none;
+}
+.link-kembali:hover {
+    text-decoration: underline;
+}
+
+/* --- Halaman Status Pesanan --- */
+.status-container {
+    max-width: 600px;
+    margin: 0 auto;
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.status-info {
+    font-size: 1.1rem;
+    color: #333;
+    margin-bottom: 1rem;
+}
+
+.status-box {
+    background-color: #e6f7ff; /* Biru muda */
+    border: 1px solid #b3e0ff;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1.5rem 0;
+}
+
+.status-box p {
+    margin: 0;
+    color: #0056b3;
+}
+
+.status-box h2 {
+    margin: 0.5rem 0 0 0;
+    color: #004a99;
+}
+
+/* Tombol Logout */
+.btn-logout {
+    background-color: #d9534f; /* Merah */
+    width: 100%;
+    margin-top: 1.5rem;
+}
+.btn-logout:hover {
+    background-color: #c9302c;
+}
+
+/* --- Admin Navigation --- */
+.admin-nav {
+    background-color: #343a40; /* Abu-abu gelap */
+    color: white;
+    padding: 0.5rem 0;
+}
+
+.admin-nav .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.admin-nav h3 {
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+.admin-nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+}
+
+.admin-nav li a {
+    color: white;
+    text-decoration: none;
+    padding: 1rem;
+    display: block;
+}
+
+.admin-nav li a:hover,
+.admin-nav li a.active {
+    background-color: #495057;
+}
+
+/* --- Admin Dashboard --- */
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #eee;
+}
+
+.admin-header h2 {
+    margin: 0;
+}
+
+.laporan-container {
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+}
+
+/* Ringkasan */
+.ringkasan-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.ringkasan-item {
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+.ringkasan-item p {
+    margin: 0 0 0.5rem 0;
+    color: #555;
+    font-size: 0.9rem;
+}
+.ringkasan-item strong {
+    font-size: 1.3rem;
+    color: #333;
+}
+
+/* Tabel Laporan */
+.laporan-tabel {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 2rem 0;
+}
+
+.laporan-tabel th,
+.laporan-tabel td {
+    border: 1px solid #ddd;
+    padding: 0.75rem;
+    text-align: left;
+}
+
+.laporan-tabel thead {
+    background-color: #f4f4f4;
+}
+
+.laporan-tabel #btnExport {
+    margin-top: 1rem;
+}
+
+/* --- Admin Kelola Menu --- */
+.admin-content-split {
+    display: grid;
+    grid-template-columns: 2fr 1fr; /* 2/3 untuk list, 1/3 untuk form */
+    gap: 2rem;
+}
+
+/* Penyesuaian untuk layar kecil */
+@media (max-width: 900px) {
+    .admin-content-split {
+        grid-template-columns: 1fr; /* Tumpuk di layar kecil */
+    }
+}
+
+.admin-list-container {
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    overflow-x: auto; /* Biar tabel bisa di-scroll horizontal jika sempit */
+}
+
+.admin-form-container {
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    height: fit-content; /* Biar tingginya pas */
+}
+
+.admin-form-container h3 {
+    margin-top: 0;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 1rem;
+}
+
+/* Tombol Aksi di Tabel */
+.btn-aksi {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8rem;
+    margin-right: 5px;
+    border-radius: 4px;
+    border: none;
+    color: white;
+    cursor: pointer;
+}
+.btn-edit {
+    background-color: #ffc107; /* Kuning */
+    color: #333;
+}
+.btn-hapus {
+    background-color: #d9534f; /* Merah */
+}
+.btn-batal {
+    background-color: #6c757d; /* Abu-abu */
+    margin-top: 10px;
+    width: 100%;
+}
+
+/* --- Halaman Dapur --- */
+.bg-dapur {
+    background-color: #343a40; /* Latar belakang gelap */
+}
+
+.header-dapur {
+    background-color: #f8f9fa; /* Header terang */
+    color: #333;
+    padding: 1rem;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.header-dapur h1 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.dapur-container {
+    margin-top: 2rem;
+}
+
+/* Tampilan jika pesanan kosong */
+.pesanan-kosong {
+    text-align: center;
+    color: #f4f4f4;
+}
+
+/* Kartu untuk 1 pesanan */
+.kartu-pesanan {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    margin-bottom: 1.5rem;
+    max-width: 450px; /* Lebar kartu */
+    margin: 1.5rem auto;
+}
+
+.kartu-pesanan h3 {
+    margin-top: 0;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 0.5rem;
+    font-size: 1.8rem;
+    color: #000;
+}
+
+.kartu-pesanan p {
+    font-size: 1rem;
+    color: #333;
+}
+.kartu-pesanan p strong {
+    color: #000;
+}
+
+.kartu-pesanan h4 {
+    margin-bottom: 0.5rem;
+}
+
+/* Daftar item di kartu dapur */
+.dapur-item-list {
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 1rem;
+}
+.dapur-item-list li {
+    background-color: #f8f9fa;
+    padding: 0.5rem;
+    border-radius: 4px;
+    margin-bottom: 5px;
+}
+
+/* Tombol aksi dapur */
+.dapur-aksi {
+    margin-top: 1.5rem;
+    display: flex;
+    gap: 10px;
+}
+.btn-cetak {
+    background-color: #007bff; /* Biru */
+    flex-grow: 1; /* Biar sama besar */
+}
+.btn-selesai {
+    background-color: #28a745; /* Hijau */
+    flex-grow: 1;
+}
+
+/* --- CSS untuk Fitur Sold Out --- */
+
+/* Tampilan di Halaman Admin */
+.btn-toggle-soldout {
+    background-color: #ffc107; /* Kuning */
+    color: #333;
+}
+.row-sold-out {
+    background-color: #f8f9fa !important; /* Latar abu-abu */
+    color: #6c757d;
+    text-decoration: line-through; /* Coret */
+}
+.row-sold-out .btn-aksi {
+    text-decoration: none; /* Jangan coret tombolnya */
+}
+
+/* Tampilan di Halaman Customer (Menu) */
+.menu-item-sold-out {
+    opacity: 0.6; /* Redupkan card */
+    background-color: #eee;
+}
+.menu-item-sold-out img {
+    filter: grayscale(100%); /* Buat gambar jadi abu-abu */
+}
+.menu-item-sold-out .btn-tambah:disabled {
+    background-color: #6c757d; /* Warna tombol disabled */
+    cursor: not-allowed;
+}

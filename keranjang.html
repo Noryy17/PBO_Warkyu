@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keranjang & Pembayaran - Digital Wakrun</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="header">
+        <h1>Konfirmasi Pesanan Anda</h1>
+    </header>
+
+    <div class="container">
+        
+        <div class="checkout-container">
+            <h3>Detail Pesanan (Meja: <span id="infoMeja">...</span>)</h3>
+            
+            <div id="keranjangList" class="keranjang-list">
+                </div>
+            
+            <hr>
+            
+            <div class="keranjang-total">
+                <strong>Subtotal</strong>
+                <strong id="subtotalHarga">Rp 0</strong>
+            </div>
+            <div class="keranjang-total">
+                <strong>Promo/Diskon</strong>
+                <strong id="diskonHarga">- Rp 0</strong>
+            </div>
+            <div class="keranjang-total grand-total">
+                <strong>Total Pembayaran</strong>
+                <strong id="totalHarga">Rp 0</strong>
+            </div>
+            
+            <hr>
+
+            <div class="opsi-tambahan">
+                <div class="input-group">
+                    <label for="catatanKhusus">Catatan Khusus (Opsional)</label>
+                    <textarea id="catatanKhusus" placeholder="Contoh: Indomie jangan terlalu matang, es teh jangan pakai gula"></textarea>
+                </div>
+                
+                <div class="input-group-inline">
+                    <label for="kodePromo">Promo/Voucher (Opsional)</label>
+                    <input type="text" id="kodePromo" placeholder="Masukkan kode">
+                    <button id="terapkanPromo" class="btn-small">Terapkan</button>
+                </div>
+                <p id="promoMessage" class="promo-message"></p>
+            </div>
+
+            <div class="metode-pembayaran">
+                <h3>Pilih Metode Pembayaran</h3>
+                <select id="metodeBayar">
+                    <option value="qris">QRIS (Simulasi)</option>
+                    <option value="cash">Tunai (Bayar di Kasir)</option>
+                    <option value="gagal">Simulasi Gagal Bayar</option>
+                </select>
+            </div>
+
+            <button id="btnBayar" class="btn btn-bayar">Bayar Sekarang</button>
+            <a href="menu.html" class="link-kembali">&laquo; Kembali ke Menu</a>
+        </div>
+
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
