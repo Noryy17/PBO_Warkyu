@@ -1,0 +1,81 @@
+@startuml
+title Component Diagram 2: Business Logic Detail
+
+top to bottom direction
+skinparam component {
+  BackgroundColor LightGreen
+  BorderColor DarkGreen
+  FontSize 12
+}
+skinparam interface {
+  BackgroundColor LightYellow
+}
+skinparam nodesep 70
+skinparam ranksep 50
+
+package "Order Module" {
+  [Order Service] as OS
+  [Cart Service] as CS
+  [Order Validator] as OV
+  
+  () "IOrderService" as IOS
+  IOS - OS
+  OS --> CS : uses
+  OS --> OV : validates with
+}
+
+package "Payment Module" {
+  [Payment Service] as PS
+  [Payment Processor] as PP
+  [Refund Manager] as RM
+  
+  () "IPaymentService" as IPS
+  IPS - PS
+  PS --> PP : processes with
+  PS --> RM : refunds via
+}
+
+package "Menu Module" {
+  [Menu Service] as MS
+  [Category Manager] as CM
+  [Availability Manager] as AM
+  
+  () "IMenuService" as IMS
+  IMS - MS
+  MS --> CM : manages categories
+  MS --> AM : manages availability
+}
+
+package "Notification Module" {
+  [Notification Service] as NS
+  [Email Service] as ES
+  [SMS Service] as SMS
+  [Push Service] as Push
+  
+  () "INotificationService" as INS
+  INS - NS
+  NS --> ES : sends emails
+  NS --> SMS : sends sms
+  NS --> Push : pushes notifications
+}
+
+' Inter-module dependencies
+OS ..> NS : notifies via
+PS ..> NS : notifies via
+PS ..> OS : updates
+
+note top of "Order Module"
+  **Order Module:**
+  - Order lifecycle management
+  - Cart operations
+  - Validation logic
+end note
+
+note bottom of "Payment Module"
+  **Payment Module:**
+  - Payment processing
+  - Gateway integration
+  - Refund handling
+end note
+
+@enduml

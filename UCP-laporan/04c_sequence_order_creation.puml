@@ -1,0 +1,81 @@
+@startuml
+title Sequence Diagram 3: Order Creation
+
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam maxMessageSize 150
+autonumber
+
+actor Customer
+participant "Checkout UI" as UI
+participant "Order\nController" as OC
+participant "Order\nService" as OS
+database "Database" as DB
+
+note over Customer, DB
+  **Prerequisites:**
+  Cart items loaded
+  Promo applied (if any)
+  Customer ready to confirm order
+end note
+
+== Customer Confirms Order ==
+
+Customer -> UI : Select payment method
+Customer -> UI : Input special notes\n(optional)
+Customer -> UI : Click "Bayar"
+activate UI
+
+UI -> OC : createOrder(orderData)
+activate OC
+
+== Create Order Record ==
+
+OC -> OS : createNewOrder(orderData)
+activate OS
+
+OS -> OS : Generate unique Order ID\nFormat: ORD-YYYYMMDD-NNN
+
+OS -> DB : BEGIN TRANSACTION
+activate DB
+
+OS -> DB : INSERT INTO orders\n(id, customer_id, table,\n total, status, notes)
+DB --> OS : orderId
+deactivate DB
+
+== Create Order Items ==
+
+loop For each cart item
+  OS -> DB : INSERT INTO order_items\n(order_id, menu_id,\n quantity, price)
+  activate DB
+  DB --> OS : success
+  deactivate DB
+end
+
+OS -> DB : COMMIT TRANSACTION
+activate DB
+DB --> OS : transaction committed
+deactivate DB
+
+OS -> OS : Set initial status = 'PENDING_PAYMENT'
+
+OS --> OC : order object created
+deactivate OS
+
+OC --> UI : orderId, orderDetails
+deactivate OC
+
+UI --> Customer : Display order confirmation
+deactivate UI
+
+note over Customer, DB
+  **Phase 3 Complete:**
+  - Order created in database
+  - Order ID generated
+  - Status = PENDING_PAYMENT
+  
+  **Next:** See Sequence Diagram 4
+  for Payment Processing
+end note
+
+@enduml

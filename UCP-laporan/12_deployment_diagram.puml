@@ -1,0 +1,119 @@
+@startuml
+title Deployment Diagram: Production Infrastructure (Simplified)
+
+' Improved readability
+skinparam node {
+  BackgroundColor<<client>> #E3F2FD
+  BackgroundColor<<server>> #FFF3E0
+  BackgroundColor<<database>> #E8F5E9
+  BorderColor Black
+  FontSize 12
+}
+skinparam nodesep 70
+skinparam ranksep 60
+
+' CLIENT TIER
+node "Client Devices" <<client>> {
+  artifact "Web Browser" as Web
+  artifact "Mobile App" as Mobile
+  artifact "Admin Panel" as Admin
+}
+
+node "Kitchen" <<client>> {
+  artifact "Kitchen Display" as KitchenApp
+  component "Thermal Printer" as Printer
+}
+
+' LOAD BALANCER
+node "Load Balancer\n(Nginx)" <<server>> {
+  artifact "Reverse Proxy" as Nginx
+}
+
+' APPLICATION TIER
+cloud "App Cluster" <<server>> {
+  node "App Server 1" {
+    artifact "Node.js + Express\n(Port 3000)" as App1
+  }
+  
+  node "App Server 2" {
+    artifact "Node.js + Express\n(Port 3000)" as App2
+  }
+  
+  node "WebSocket Server" {
+    artifact "Socket.IO" as WS
+  }
+}
+
+' DATABASE TIER
+cloud "Database Cluster" <<database>> {
+  database "PostgreSQL\nPrimary" as DB_Primary
+  database "PostgreSQL\nReplica" as DB_Replica
+}
+
+' CACHE TIER
+node "Redis\nCache" <<server>> {
+  database "Redis\nMaster" as Redis
+}
+
+' EXTERNAL SERVICES
+cloud "AWS Cloud" {
+  node "S3 Storage" {
+    artifact "Images and Files" as S3
+  }
+}
+
+cloud "External APIs" {
+  node "Midtrans" {
+    artifact "Payment API" as PayAPI
+  }
+  node "SendGrid" {
+    artifact "Email API" as EmailAPI
+  }
+}
+
+' CONNECTIONS (simplified)
+Web --> Nginx : HTTPS
+Mobile --> Nginx : HTTPS
+Admin --> Nginx : HTTPS
+KitchenApp --> WS : WSS
+
+Nginx --> App1 : HTTP
+Nginx --> App2 : HTTP
+
+App1 --> DB_Primary : Write
+App2 --> DB_Primary : Write
+App1 --> DB_Replica : Read
+App2 --> DB_Replica : Read
+
+DB_Primary --> DB_Replica : Replication
+
+App1 --> Redis : Cache
+App2 --> Redis : Cache
+
+App1 --> S3 : Upload/Download
+App2 --> PayAPI : API Call
+App1 --> EmailAPI : Send
+
+KitchenApp --> Printer : Print
+
+note top of Nginx
+  **Load Balancer:**
+  • SSL Termination
+  • Round Robin
+  • Health Checks
+end note
+
+note bottom of DB_Primary
+  **Database:**
+  • PostgreSQL 15
+  • Streaming replication
+  • Daily backups
+end note
+
+note right of "App Cluster"
+  **Scaling:**
+  • Auto-scale 2-10 instances
+  • CPU threshold: 70%
+end note
+
+@enduml

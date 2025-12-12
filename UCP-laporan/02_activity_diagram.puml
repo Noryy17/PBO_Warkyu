@@ -1,0 +1,156 @@
+@startuml
+title Activity Diagram - Proses Pemesanan Lengkap (Customer Flow)
+
+|Customer|
+start
+:Buka Aplikasi;
+
+if (Sudah Login?) then (tidak)
+  :Input Username\ndan Password;
+  :Klik Login;
+  
+  if (Validasi Login?) then (gagal)
+    :Tampilkan Error;
+    stop
+  else (berhasil)
+  endif
+else (ya)
+endif
+
+:Lihat Daftar Menu;
+
+|System|
+:Load Menu\ndari Database;
+:Filter Menu\nyang Tersedia;
+
+|Customer|
+:Pilih Kategori\n(Indomie/Roti/Nasi/Minuman);
+
+while (Mau tambah item?) is (ya)
+  :Pilih Menu;
+  
+  |System|
+  if (Menu Sold Out?) then (ya)
+    :Tampilkan\n"Sold Out";
+    |Customer|
+  else (tidak)
+    |Customer|
+    :Klik Tambah;
+    |System|
+    :Tambahkan ke\nKeranjang;
+    :Update Counter\nKeranjang;
+  endif
+  |Customer|
+endwhile (tidak)
+
+:Input Nomor Meja;
+:Klik Checkout;
+
+|System|
+if (Nomor Meja Valid?) then (tidak)
+  :Tampilkan Error\n"Isi Nomor Meja";
+  stop
+else (ya)
+endif
+
+if (Keranjang Kosong?) then (ya)
+  :Tampilkan Error\n"Keranjang Kosong";
+  stop
+else (tidak)
+endif
+
+:Tampilkan Halaman\nCheckout;
+
+|Customer|
+:Review Pesanan;
+
+if (Ada Kode Promo?) then (ya)
+  :Input Kode Promo;
+  :Klik Terapkan;
+  
+  |System|
+  if (Promo Valid?) then (ya)
+    :Hitung Diskon;
+    :Update Total;
+  else (tidak)
+    :Tampilkan\n"Promo Tidak Valid";
+  endif
+else (tidak)
+endif
+
+|Customer|
+:Pilih Metode\nPembayaran;
+:Input Catatan\nKhusus (opsional);
+:Klik Bayar;
+
+|System|
+:Generate Order ID;
+:Simpan Data Pesanan;
+
+|Payment Gateway|
+:Proses Pembayaran;
+
+if (Pembayaran Sukses?) then (tidak)
+  |System|
+  :Tampilkan\n"Pembayaran Gagal";
+  
+  |Customer|
+  :Ulangi Pembayaran\natau Ganti Metode;
+  stop
+else (ya)
+  |System|
+  :Update Status Order\n= "PAID";
+  :Simpan Payment Record;
+endif
+
+|System|
+fork
+  :Kirim Notifikasi\nke Dapur;
+  
+  |Kitchen|
+  :Terima Notifikasi\nPesanan Baru;
+  :Tampilkan di\nKitchen Display;
+  
+fork again
+  :Kirim Email/SMS\nKonfirmasi ke Customer;
+  
+fork again
+  :Update Stok Menu\n(jika ada);
+  
+end fork
+
+|Customer|
+:Redirect ke Halaman\nStatus Pesanan;
+:Lihat Status\nReal-time;
+
+|Kitchen|
+:Mulai Siapkan\nPesanan;
+:Update Status\n= "IN_KITCHEN";
+
+:Pesanan Selesai\nDisiapkan;
+:Klik "Tandai Selesai";
+
+|System|
+:Update Status\n= "READY";
+
+|Customer|
+:Terima Notifikasi\n"Pesanan Siap";
+:Ambil Pesanan;
+
+|System|
+:Update Status\n= "COMPLETED";
+:Simpan ke Riwayat;
+
+|Customer|
+if (Mau Logout?) then (ya)
+  :Klik Logout;
+  |System|
+  :Clear Session;
+  :Redirect ke Login;
+else (tidak)
+  :Buat Pesanan Baru;
+endif
+
+stop
+
+@enduml

@@ -1,0 +1,68 @@
+@startuml
+title Sequence Diagram 1: Checkout and Cart Retrieval
+
+' Improve readability
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam maxMessageSize 150
+autonumber
+
+' Simplified participant names
+actor Customer
+participant "Menu UI" as UI
+participant "Order\nController" as OC
+participant "Order\nService" as OS
+database "Database" as DB
+
+== Customer Initiates Checkout ==
+
+Customer -> UI : Click "Checkout"
+activate UI
+
+UI -> UI : Validate nomor meja
+UI -> UI : Validate cart not empty
+
+alt Validation Failed
+  UI --> Customer : Show error message
+  Customer -> UI : Fix and retry
+else Validation Success
+  UI -> UI : Navigate to checkout page
+end
+
+== Load Cart Items ==
+
+UI -> OC : getCartItems()
+activate OC
+
+OC -> OS : retrieveCart(customerId)
+activate OS
+
+OS -> DB : SELECT cart_items\nWHERE customer_id = ?
+activate DB
+DB --> OS : cartItems[]
+deactivate DB
+
+OS --> OC : cartItems[]
+deactivate OS
+
+OC --> UI : cartItems[]
+deactivate OC
+
+== Display Checkout Summary ==
+
+UI -> UI : Calculate subtotal
+UI -> UI : Display items list
+UI --> Customer : Show checkout page\nwith order summary
+deactivate UI
+
+note over Customer, DB
+  **Phase 1 Complete:**
+  - Cart retrieved successfully
+  - Items displayed to customer
+  - Ready for promo and payment
+  
+  **Next:** See Sequence Diagram 2
+  for Promo Application
+end note
+
+@enduml

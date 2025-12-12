@@ -1,0 +1,95 @@
+@startuml
+title Timing Diagram - Real-time Order Processing
+
+concise "Customer" as customer
+concise "OrderService" as order
+concise "PaymentGateway" as payment
+concise "Kitchen Display" as kitchen
+robust "Order Status" as status
+
+@0
+customer is Idle
+order is Ready
+payment is Idle
+kitchen is Waiting
+status is -
+
+@+5
+customer is "Browsing Menu"
+
+@+30
+customer is "Adding Items"
+
+@+10
+customer is "Checkout"
+order is "Creating Order"
+' Customer clicks checkout
+
+@+2
+order is "Validating"
+status is "PENDING"
+
+@+1
+order is "Calculating Total"
+
+@+3
+customer is "Entering Payment"
+order is "Waiting Payment"
+payment is "Processing"
+status is "AWAITING_PAYMENT"
+
+@+15
+payment is "Verifying"
+' Customer scans QR code
+
+@+3
+payment is "Success"
+order is "Confirmed"
+status is "PAID"
+' Payment confirmed at T+69s
+
+@+1
+order is "Notifying Kitchen"
+kitchen is "Receiving"
+
+@+2
+kitchen is "Displaying Order"
+order is "Monitoring"
+status is "IN_KITCHEN"
+' Notification arrives, Sound alert plays
+
+@+300
+customer is "Waiting"
+kitchen is "Cooking"
+' Estimated 5 minutes cooking
+
+@+60
+kitchen is "Quality Check"
+
+@+20
+kitchen is "Ready"
+status is "READY"
+order is "Notifying Customer"
+' Kitchen marks complete at T+452s
+
+@+5
+customer is "Notified"
+' Push notification: Pesanan siap!
+
+@+120
+customer is "Picking Up"
+kitchen is "Serving"
+
+@+10
+customer is "Received"
+order is "Completing"
+status is "COMPLETED"
+
+@+5
+order is "Archived"
+customer is Idle
+kitchen is Waiting
+payment is Idle
+status is "HISTORY"
+
+@enduml

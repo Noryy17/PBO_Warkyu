@@ -1,0 +1,65 @@
+@startuml
+title Activity Diagram 1: Customer Ordering Flow
+
+skinparam activityFontSize 12
+skinparam activityArrowFontSize 10
+
+start
+
+:Open App;
+
+if (Already Logged In?) then (no)
+  :Input Credentials;
+  :Click Login;
+  if (Login Valid?) then (no)
+    :Show Error;
+    stop
+  endif
+else (yes)
+endif
+
+:View Menu List;
+:Load Available Menu from Database;
+:Apply Filters;
+:Select Category;
+
+note right
+  Categories:
+  Indomie / Roti Bakar
+  Nasi / Minuman
+end note
+
+while (Add More Items?) is (yes)
+  :Select Menu Item;
+  if (Item Available?) then (no)
+    :Show Sold Out;
+  else (yes)
+    :Add to Cart;
+    :Update Cart Counter;
+  endif
+endwhile (no)
+
+if (Cart Empty?) then (yes)
+  :Show Cart Empty;
+  stop
+endif
+
+:Input Table Number;
+:Click Checkout;
+
+if (Table Number Valid?) then (no)
+  :Show Error Invalid Table;
+  stop
+endif
+
+:Navigate to Checkout Page;
+
+note right
+  Flow Complete:
+  Customer has added items to cart
+  and initiated checkout process
+end note
+
+stop
+
+@enduml

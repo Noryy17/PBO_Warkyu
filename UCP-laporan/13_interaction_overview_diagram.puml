@@ -1,0 +1,203 @@
+@startuml
+title Interaction Overview Diagram - Complete Order Lifecycle
+
+start
+
+:Customer Opens App;
+
+' ============ AUTHENTICATION FLOW ============
+partition "Authentication" {
+  if (Already Logged In?) then (no)
+    :Show Login Page;
+    :Input Credentials;
+    :Validate User;
+    :Generate JWT Token;
+    :Create Session;
+    
+    if (Login Success?) then (no)
+      :Display Error;
+      stop
+    else (yes)
+    endif
+  else (yes)
+  endif
+}
+
+' ============ MENU BROWSING FLOW ============
+partition "Menu Browsing" {
+  :Load Menu from Database;
+  :Display Categories;
+  :Filter by Category;
+  :Show Availability;
+  :Load Images from CDN;
+  
+  while (Browse More?) is (yes)
+    :Select Category Filter;
+    :Display Filtered Menu;
+  endwhile (no)
+}
+
+' ============ CART MANAGEMENT FLOW ============
+partition "Cart Management" {
+  while (Add More Items?) is (yes)
+    :Select Menu Item;
+    
+    if (Item Available?) then (yes)
+      :Add to Cart;
+      :Update Cart Counter;
+      :Validate Item;
+      :Check Stock;
+      :Update Redis Cache;
+      :Return Updated Cart;
+    else (no)
+      :Show "Sold Out";
+    endif
+  endwhile (no)
+  
+  if (Cart Empty?) then (yes)
+    :Show "Cart Empty" Message;
+    stop
+  else (no)
+  endif
+}
+
+' ============ CHECKOUT FLOW ============
+partition "Checkout Process" {
+  :Click Checkout;
+  :Input Table Number;
+  :Validate Table Number;
+  :Validate Cart Items;
+  :Calculate Subtotal;
+  :Display Summary;
+  
+  if (Has Promo Code?) then (yes)
+    :Enter Promo Code;
+    :Validate Promo Code;
+    :Check Conditions;
+    :Calculate Discount;
+    :Update Total;
+    
+    if (Promo Valid?) then (yes)
+      :Apply Discount;
+    else (no)
+      :Show Error;
+    endif
+  else (no)
+  endif
+  
+  :Review Order Summary;
+}
+
+' ============ PAYMENT FLOW ============
+partition "Payment Processing" {
+  :Select Payment Method;
+  :Click "Bayar";
+  :Create Order Record;
+  :Generate Order ID;
+  :Call Payment Gateway;
+  :Generate QR Code;
+  :Wait for Payment;
+  
+  fork
+    :Display Payment UI;
+    :Customer Completes Payment;
+  fork again
+    :Wait for Webhook;
+  end fork
+  
+  if (Payment Success?) then (no)
+    :Show Payment Failed;
+    
+    if (Retry?) then (yes)
+      :Return to Payment Selection;
+    else (no)
+      :Cancel Order;
+      stop
+    endif
+  else (yes)
+    :Update Order Status = PAID;
+    :Save Payment Record;
+  endif
+}
+
+' ============ NOTIFICATION FLOW ============
+partition "Kitchen Notification" {
+  fork
+    :Create Notification;
+    :Push via WebSocket;
+    :Save to Database;
+    :Play Sound Alert;
+    :Kitchen Receives Order;
+  fork again
+    :Send Email Confirmation;
+  fork again
+    :Send SMS (if enabled);
+  fork again
+    :Clear Customer Cart;
+  end fork
+}
+
+' ============ KITCHEN FLOW ============
+partition "Kitchen Processing" {
+  :Display on Kitchen Screen;
+  :Kitchen Starts Cooking;
+  :Update Status IN_KITCHEN;
+  :Update Status COOKING;
+  :Update Status READY;
+  
+  :Kitchen Marks Complete;
+  :Update Status = READY;
+  :Notify Customer;
+}
+
+' ============ COMPLETION FLOW ============
+partition "Order Completion" {
+  fork
+    :Customer Receives Notification;
+    :Customer Picks Up Order;
+  fork again
+    :Real-time Updates;
+    :Display Estimated Time;
+    :Show Current Status;
+  end fork
+  
+  :Update Status = SERVED;
+  
+  :Customer Completes Meal;
+  :Update Status = COMPLETED;
+  :Save to Order History;
+  :Update Sales Statistics;
+  :Archive Notification;
+  :Send Feedback Request;
+}
+
+' ============ OPTIONAL FLOWS ============
+partition "Optional Actions" {
+  if (Customer Action?) then (view history)
+    :Show Order History;
+  else if (logout)
+    :Logout;
+    :Clear Session;
+  else if (new order)
+    :Return to Menu;
+  else (done)
+    stop
+  endif
+}
+
+stop
+
+note right
+  **Interaction Overview Diagram** menggabungkan
+  berbagai jenis diagram untuk menunjukkan
+  alur lengkap sistem:
+  
+  - Activity Diagram (decision points, loops)
+  - Sequence Diagram (referenced interactions)
+  - State Machine (status transitions)
+  
+  This gives a complete picture of the
+  end-to-end order lifecycle.
+end note
+
+@enduml

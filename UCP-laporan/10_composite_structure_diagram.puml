@@ -1,0 +1,106 @@
+@startuml
+title Composite Structure Diagram - Order Service Internal Structure
+
+' Main component
+component "OrderService" {
+  
+  ' Ports
+  portin "IOrderAPI" as orderAPI
+  portout "IDatabase" as dbPort
+  portout "INotification" as notifPort
+  portout "IPayment" as payPort
+  
+  ' Internal parts
+  component "OrderController" as ctrl {
+    port "Request Handler" as reqHandler
+  }
+  
+  component "OrderProcessor" as processor {
+    port "Validation Port" as valPort
+    port "Calculation Port" as calcPort
+  }
+  
+  component "OrderValidator" as validator {
+    component "TableValidator" as tableVal
+    component "MenuValidator" as menuVal
+    component "StockValidator" as stockVal
+  }
+  
+  component "PriceCalculator" as calculator {
+    component "SubtotalCalculator" as subtotalCalc
+    component "DiscountCalculator" as discountCalc
+    component "TaxCalculator" as taxCalc
+  }
+  
+  component "StatusManager" as statusMgr {
+    component "StateTransition" as stateTransition
+    component "HistoryLogger" as historyLog
+  }
+  
+  component "OrderRepository" as repo {
+    port "Data Access Port" as dataPort
+  }
+  
+  ' Internal connections
+  orderAPI --> reqHandler
+  reqHandler --> processor
+  
+  processor --> valPort
+  valPort --> validator
+  
+  processor --> calcPort
+  calcPort --> calculator
+  
+  validator --> tableVal
+  validator --> menuVal
+  validator --> stockVal
+  
+  calculator --> subtotalCalc
+  calculator --> discountCalc
+  calculator --> taxCalc
+  
+  processor --> statusMgr
+  statusMgr --> stateTransition
+  statusMgr --> historyLog
+  
+  processor --> repo
+  repo --> dataPort
+  dataPort --> dbPort
+  
+  processor --> notifPort
+  processor --> payPort
+}
+
+' External collaborators
+component "NotificationService" as extNotif
+component "PaymentService" as extPay
+database "Database" as extDB
+
+notifPort --> extNotif : sendNotification()
+payPort --> extPay : processPayment()
+dbPort --> extDB : persist()
+
+' Validator memiliki 3 sub komponen
+' TableValidator: Cek nomor meja valid
+' MenuValidator: Cek menu exists dan available
+' StockValidator: Cek stok bahan dan quantity
+
+' Calculator hierarchy:
+' 1. SubtotalCalculator - Sum (item.price x item.quantity)
+' 2. DiscountCalculator - Apply promo code if valid, Max discount check
+' 3. TaxCalculator - (subtotal - discount) x tax_rate
+' Final: subtotal - discount + tax
+
+' Status Manager bertanggung jawab:
+' 1. StateTransition - Validate state changes, Enforce business rules, PENDING to PAID to COOKING
+' 2. HistoryLogger - Log semua perubahan status, Track who changed and when, Audit trail
+
+' OrderProcessor adalah core logic yang mengorchestrasi semua sub-komponen:
+' 1. Terima request dari Controller
+' 2. Validasi melalui Validator
+' 3. Hitung harga via Calculator
+' 4. Update status via StatusManager
+' 5. Persist ke Database
+' 6. Trigger notifications
+
+@enduml

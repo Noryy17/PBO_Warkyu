@@ -1,0 +1,384 @@
+@startuml
+title Class Diagram - Sistem Digital Wakrun (Complete Domain Model)
+
+' Styling
+skinparam classAttributeIconSize 0
+skinparam class {
+  BackgroundColor LightYellow
+  BorderColor DarkOrange
+  ArrowColor Black
+}
+
+' ============ ENTITY CLASSES ============
+
+class Customer {
+  - customerId: String
+  - username: String
+  - email: String
+  - phoneNumber: String
+  - passwordHash: String
+  - currentTable: String
+  - createdAt: LocalDateTime
+  - lastLogin: LocalDateTime
+  
+  + register(): Boolean
+  + login(username, password): Boolean
+  + logout(): void
+  + viewMenu(): List<MenuItem>
+  + placeOrder(items: List<OrderItem>, table: String): Order
+  + viewOrderHistory(): List<Order>
+  + updateProfile(data: Object): Boolean
+}
+
+class Admin {
+  - adminId: String
+  - username: String
+  - email: String
+  - passwordHash: String
+  - role: AdminRole
+  - permissions: List<String>
+  - createdAt: LocalDateTime
+  
+  + login(username, password): Boolean
+  + manageMenu(action: String, menuData: Object): Boolean
+  + manageOrders(): List<Order>
+  + confirmPayment(orderId: String): Boolean
+  + generateReport(startDate: Date, endDate: Date): SalesReport
+  + setMenuAvailability(menuId: String, available: Boolean): Boolean
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  MANAGER
+  CASHIER
+}
+
+class MenuItem {
+  - menuId: String
+  - name: String
+  - description: String
+  - price: Double
+  - category: MenuCategory
+  - isAvailable: Boolean
+  - imageUrl: String
+  - preparationTime: Integer
+  - ingredients: List<String>
+  - createdAt: LocalDateTime
+  - updatedAt: LocalDateTime
+  
+  + getDetails(): String
+  + updatePrice(newPrice: Double): void
+  + toggleAvailability(): void
+  + calculateTax(): Double
+}
+
+enum MenuCategory {
+  INDOMIE
+  ROTI_BAKAR
+  NASI
+  MINUMAN
+}
+
+class Order {
+  - orderId: String
+  - customerId: String
+  - tableNumber: String
+  - orderTime: LocalDateTime
+  - status: OrderStatus
+  - items: List<OrderItem>
+  - promoApplied: PromoCode
+  - subtotal: Double
+  - discount: Double
+  - tax: Double
+  - totalAmount: Double
+  - specialNotes: String
+  - estimatedTime: Integer
+  
+  + addItem(item: OrderItem): void
+  + removeItem(itemId: String): void
+  + applyPromo(promo: PromoCode): Boolean
+  + calculateSubtotal(): Double
+  + calculateTotal(): Double
+  + updateStatus(newStatus: OrderStatus): void
+  + pay(paymentMethod: PaymentMethod): Payment
+  + cancel(): Boolean
+  + getEstimatedTime(): Integer
+}
+
+enum OrderStatus {
+  DRAFT
+  PENDING_PAYMENT
+  PAID
+  IN_KITCHEN
+  COOKING
+  READY
+  SERVED
+  COMPLETED
+  CANCELLED
+  REFUNDED
+}
+
+class OrderItem {
+  - orderItemId: String
+  - menuItem: MenuItem
+  - quantity: Integer
+  - unitPrice: Double
+  - specialNotes: String
+  - createdAt: LocalDateTime
+  
+  + calculateSubtotal(): Double
+  + updateQuantity(newQty: Integer): void
+  + addSpecialNotes(notes: String): void
+}
+
+class PromoCode {
+  - promoId: String
+  - code: String
+  - description: String
+  - discountType: DiscountType
+  - value: Double
+  - minOrderAmount: Double
+  - maxDiscount: Double
+  - startDate: LocalDateTime
+  - endDate: LocalDateTime
+  - usageLimit: Integer
+  - usageCount: Integer
+  - isActive: Boolean
+  
+  + isValid(orderTotal: Double, currentDate: LocalDateTime): Boolean
+  + calculateDiscount(orderTotal: Double): Double
+  + incrementUsage(): void
+  + deactivate(): void
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED_AMOUNT
+  FREE_ITEM
+}
+
+class Payment {
+  - paymentId: String
+  - orderId: String
+  - amount: Double
+  - method: PaymentMethod
+  - status: PaymentStatus
+  - timestamp: LocalDateTime
+  - externalReference: String
+  - qrCode: String
+  - isSuccessful: Boolean
+  - failureReason: String
+  - refundAmount: Double
+  
+  + process(): Boolean
+  + verify(): Boolean
+  + refund(amount: Double): Boolean
+  + generateQRCode(): String
+}
+
+enum PaymentMethod {
+  QRIS
+  CASH
+  GOPAY
+  OVO
+  DANA
+  SHOPEEPAY
+  BANK_TRANSFER
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  SUCCESS
+  FAILED
+  REFUNDED
+  CANCELLED
+}
+
+class KitchenNotification {
+  - notificationId: String
+  - orderId: String
+  - items: List<OrderItem>
+  - tableNumber: String
+  - priority: Integer
+  - timestamp: LocalDateTime
+  - isPrinted: Boolean
+  - isAcknowledged: Boolean
+  - acknowledgedAt: LocalDateTime
+  - completedAt: LocalDateTime
+  
+  + sendToKitchen(): Boolean
+  + markAsPrinted(): void
+  + acknowledge(): void
+  + markComplete(): void
+  + calculatePriority(): Integer
+}
+
+class SalesReport {
+  - reportId: String
+  - periodType: String
+  - startDate: LocalDate
+  - endDate: LocalDate
+  - totalOrders: Integer
+  - totalRevenue: Double
+  - totalProfit: Double
+  - topSellingItems: List<MenuItem>
+  - ordersByCategory: Map<String, Integer>
+  - revenueByDay: Map<LocalDate, Double>
+  - averageOrderValue: Double
+  - generatedAt: LocalDateTime
+  
+  + generate(orders: List<Order>): void
+  + exportToExcel(): File
+  + exportToPDF(): File
+  + getTopItems(limit: Integer): List<MenuItem>
+  + getRevenueGrowth(): Double
+}
+
+class Cart {
+  - cartId: String
+  - customerId: String
+  - items: List<CartItem>
+  - createdAt: LocalDateTime
+  - expiresAt: LocalDateTime
+  
+  + addItem(menuItem: MenuItem, quantity: Integer): void
+  + removeItem(menuItemId: String): void
+  + updateQuantity(menuItemId: String, quantity: Integer): void
+  + clear(): void
+  + calculateTotal(): Double
+  + isExpired(): Boolean
+  + convertToOrder(): Order
+}
+
+class CartItem {
+  - cartItemId: String
+  - menuItem: MenuItem
+  - quantity: Integer
+  - addedAt: LocalDateTime
+  
+  + getSubtotal(): Double
+  + updateQuantity(newQty: Integer): void
+}
+
+' ============ SERVICE CLASSES ============
+
+class OrderService {
+  - database: Database
+  
+  + createOrder(customerId: String, items: List): Order
+  + getOrderById(orderId: String): Order
+  + updateOrderStatus(orderId: String, status: OrderStatus): Boolean
+  + cancelOrder(orderId: String): Boolean
+  + getOrdersByCustomer(customerId: String): List<Order>
+  + getOrdersByStatus(status: OrderStatus): List<Order>
+  + calculateEstimatedTime(items: List<OrderItem>): Integer
+}
+
+class PaymentServiceClass <<Service>> {
+  - gatewayClient: PaymentGateway
+  - database: Database
+  
+  + initiatePayment(order: Order, method: PaymentMethod): Payment
+  + verifyPayment(paymentId: String): Boolean
+  + processRefund(paymentId: String, amount: Double): Boolean
+  + handleWebhook(data: Object): void
+}
+
+class NotificationService {
+  - webSocketServer: WebSocketServer
+  - emailService: EmailService
+  - smsService: SMSService
+  
+  + sendKitchenNotification(order: Order): Boolean
+  + sendCustomerNotification(customerId: String, message: String): Boolean
+  + sendEmail(to: String, subject: String, body: String): Boolean
+  + sendSMS(phoneNumber: String, message: String): Boolean
+  + broadcastToKitchen(notification: KitchenNotification): void
+}
+
+class AuthenticationService {
+  - jwtSecret: String
+  - database: Database
+  
+  + login(username: String, password: String): String
+  + logout(token: String): Boolean
+  + validateToken(token: String): Boolean
+  + hashPassword(password: String): String
+  + verifyPassword(password: String, hash: String): Boolean
+  + generateToken(userId: String, role: String): String
+}
+
+' ============ RELATIONSHIPS ============
+
+' Customer relationships
+Customer "1" -- "0..*" Order : places >
+Customer "1" -- "0..1" Cart : has >
+
+' Admin relationships
+Admin "1" -- "0..*" MenuItem : manages >
+Admin "1" -- "0..*" SalesReport : generates >
+
+' Order relationships
+Order "1" *-- "1..*" OrderItem : contains >
+Order "1" -- "0..1" PromoCode : uses >
+Order "1" -- "1" Payment : has >
+Order "1" -- "1" KitchenNotification : triggers >
+
+' MenuItem relationships
+MenuItem "1" -- "0..*" OrderItem : ordered in >
+MenuItem "1" -- "0..*" CartItem : referenced by >
+
+' Cart relationships
+Cart "1" *-- "0..*" CartItem : contains >
+
+' Service dependencies
+OrderService ..> Order : creates
+OrderService ..> OrderItem : manages
+PaymentServiceClass ..> Payment : processes
+PaymentServiceClass ..> Order : updates
+NotificationService ..> KitchenNotification : sends
+NotificationService ..> Customer : notifies
+AuthenticationService ..> Customer : authenticates
+AuthenticationService ..> Admin : authenticates
+
+' Aggregation
+SalesReport "1" o-- "0..*" Order : aggregates >
+SalesReport "1" o-- "0..*" MenuItem : analyzes >
+
+' Notes
+note top of Order
+  Order lifecycle:
+  DRAFT → PENDING_PAYMENT → PAID → 
+  IN_KITCHEN → COOKING → READY → 
+  SERVED → COMPLETED
+  
+  Alternative paths:
+  - CANCELLED (any stage)
+  - REFUNDED (after PAID)
+end note
+
+note right of Payment
+  Payment integration dengan
+  external gateway seperti:
+  - Midtrans
+  - Xendit
+  - Doku
+  
+  Webhook untuk konfirmasi
+  pembayaran asynchronous
+end note
+
+note bottom of KitchenNotification
+  Real-time notification melalui:
+  - WebSocket (untuk web)
+  - Server-Sent Events (SSE)
+  - Push notification (mobile)
+  
+  Priority berdasarkan:
+  - Waiting time
+  - Order size
+  - Special requests
+end note
+
+@enduml

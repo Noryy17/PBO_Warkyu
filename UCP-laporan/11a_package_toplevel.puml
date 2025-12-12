@@ -1,0 +1,87 @@
+@startuml
+title Package Diagram 1: Top-Level Organization
+
+left to right direction
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor<<Presentation>> #FFCCCC
+  BackgroundColor<<Domain>> #CCFFCC
+  BackgroundColor<<Infrastructure>> #CCCCFF
+  BackgroundColor<<Utils>> #FFFFCC
+  BorderColor Black
+  FontSize 12
+}
+skinparam nodesep 80
+skinparam ranksep 60
+
+package "presentation" <<Presentation>> {
+  package "controllers"
+  package "routes"
+  package "middlewares"
+  package "dto"
+}
+
+package "domain" <<Domain>> {
+  package "entities"
+  package "services"
+  package "interfaces"
+  package "valueobjects"
+}
+
+package "infrastructure" <<Infrastructure>> {
+  package "database"
+  package "cache"
+  package "external"
+  package "logging"
+}
+
+package "utils" <<Utils>> {
+  package "security"
+  package "validators"
+  package "helpers"
+}
+
+package "shared" {
+  package "types"
+  package "exceptions"
+  package "events"
+}
+
+' Dependencies
+presentation ..> domain : uses
+presentation ..> shared : uses
+presentation ..> utils : uses
+
+domain ..> shared : uses
+domain ..> valueobjects : uses
+
+infrastructure ..> domain : implements
+infrastructure ..> shared : uses
+
+utils ..> shared : uses
+
+note top of presentation
+  **Presentation Layer:**
+  - HTTP handling
+  - Request/Response
+  - Authentication
+  - Validation
+end note
+
+note top of domain
+  **Domain Layer:**
+  - Business logic
+  - Core entities
+  - Domain services
+  - No infrastructure deps!
+end note
+
+note bottom of infrastructure
+  **Infrastructure Layer:**
+  - Database access
+  - External APIs
+  - Caching
+  - File storage
+end note
+
+@enduml

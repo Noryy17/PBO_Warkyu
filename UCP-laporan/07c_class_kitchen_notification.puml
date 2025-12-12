@@ -1,0 +1,102 @@
+@startuml
+title Class Diagram 3: Kitchen and Notification Domain
+
+left to right direction
+skinparam classAttributeIconSize 0
+skinparam class {
+  BackgroundColor<<Entity>> #FFE5B4
+  BackgroundColor<<Service>> #E8F4F8
+  BorderColor DarkOrange
+  FontSize 12
+}
+skinparam nodesep 60
+skinparam ranksep 80
+
+class KitchenNotification <<Entity>> {
+  - notificationId: String
+  - orderId: String
+  - tableNumber: String
+  - items: List<OrderItem>
+  - priority: Integer
+  - timestamp: DateTime
+  - isPrinted: Boolean
+  - isAcknowledged: Boolean
+  
+  + sendToKitchen(): Boolean
+  + markAsPrinted(): void
+  + acknowledge(): void
+  + markComplete(): void
+}
+
+class SalesReport <<Entity>> {
+  - reportId: String
+  - startDate: Date
+  - endDate: Date
+  - totalOrders: Integer
+  - totalRevenue: Double
+  - topItems: List<MenuItem>
+  - generatedAt: DateTime
+  
+  + generate(orders): void
+  + exportToExcel(): File
+  + exportToPDF(): File
+  + getTopItems(limit): List
+}
+
+class Admin <<Entity>> {
+  - adminId: String
+  - username: String
+  - role: AdminRole
+  - permissions: List<String>
+  
+  + login(): Boolean
+  + manageMenu(action, data): Boolean
+  + confirmPayment(orderId): Boolean
+  + generateReport(dates): Report
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  MANAGER
+  CASHIER
+}
+
+' Services
+class NotificationService <<Service>> {
+  + sendKitchenNotification(order): Boolean
+  + sendEmailConfirmation(customer): void
+  + sendSMS(phone, message): void
+  + broadcastToKitchen(notif): void
+}
+
+' External references
+class Order <<External>>
+class MenuItem <<External>>
+
+' Relationships
+KitchenNotification "1" -right-> "1" Order : notifies >
+SalesReport "1" o-right-> "0..*" Order : analyzes >
+SalesReport "1" o-down-> "0..*" MenuItem : reports on >
+
+Admin "1" -down-> "0..*" SalesReport : generates >
+Admin -down-> AdminRole
+
+NotificationService .left.> KitchenNotification : creates >
+
+note top of KitchenNotification
+  Kitchen Integration:
+  - Real-time notifications
+  - Priority-based queuing
+  - Print support
+  - Acknowledgment tracking
+end note
+
+note bottom of SalesReport
+  Business Analytics:
+  - Sales aggregation
+  - Top selling items
+  - Revenue tracking
+  - Export capabilities
+end note
+
+@enduml

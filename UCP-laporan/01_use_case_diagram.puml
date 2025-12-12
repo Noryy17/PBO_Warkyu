@@ -1,0 +1,91 @@
+@startuml
+title Use Case Diagram - Sistem Digital Wakrun (Improved)
+
+left to right direction
+
+' Improved spacing
+skinparam nodesep 80
+skinparam ranksep 70
+skinparam usecase {
+  BackgroundColor<<customer>> #B3D9FF
+  BackgroundColor<<admin>> #C5E1A5
+  BackgroundColor<<kitchen>> #FFE5B4
+  BackgroundColor White
+  BorderColor Black
+  FontSize 12
+}
+
+' Actors
+actor "Customer" as Customer
+actor "Admin" as Admin
+actor "Dapur" as Kitchen  
+actor "Payment\nGateway" as PG
+
+' System Boundary
+rectangle "Sistem Digital Wakrun" {
+  
+  ' Customer Use Cases
+  (Login) as UC_Login
+  (Daftar Akun) <<customer>> as UC_Register
+  (Lihat Menu) <<customer>> as UC_ViewMenu
+  (Kelola Keranjang) <<customer>> as UC_Cart
+  (Checkout) <<customer>> as UC_Checkout
+  (Lihat Riwayat) <<customer>> as UC_History
+  
+  ' Admin Use Cases
+  (Kelola Menu) <<admin>> as UC_ManageMenu
+  (Kelola Pesanan) <<admin>> as UC_ManageOrders
+  (Konfirmasi Pembayaran) <<admin>> as UC_ConfirmPay
+  (Laporan Penjualan) <<admin>> as UC_Report
+  
+  ' Kitchen Use Cases
+  (Terima Notifikasi) <<kitchen>> as UC_Notif
+  (Update Status) <<kitchen>> as UC_UpdateStatus
+  
+  ' Internal
+  (Kirim ke Dapur) as UC_SendKitchen
+}
+
+' Actor Connections
+Customer --> UC_Register
+Customer --> UC_Login
+Customer --> UC_ViewMenu
+Customer --> UC_Cart
+Customer --> UC_Checkout
+Customer --> UC_History
+
+Admin --> UC_Login
+Admin --> UC_ManageMenu
+Admin --> UC_ManageOrders
+Admin --> UC_ConfirmPay
+Admin --> UC_Report
+
+Kitchen --> UC_Notif
+Kitchen --> UC_UpdateStatus
+
+' External
+UC_Checkout --> PG : proses
+
+' Relationships  
+UC_ViewMenu ..> UC_Login : <<extend>>
+UC_Cart ..> UC_Login : <<extend>>
+UC_Checkout ..> UC_Login : <<extend>>
+UC_Checkout ..> UC_SendKitchen : <<include>>
+UC_SendKitchen --> UC_Notif : trigger
+
+note right of Customer
+  **Customer:**
+  • Browse menu
+  • Manage cart
+  • Checkout and pay
+  • Track orders
+end note
+
+note right of Admin
+  **Admin:**
+  • Manage menu
+  • Confirm payments
+  • View reports
+end note
+
+@enduml

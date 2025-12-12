@@ -1,0 +1,222 @@
+@startuml
+title Object Diagram - Contoh Instance: Pesanan Aktif Customer "Budi"
+
+' Customer instance
+object "budi : Customer" as cust {
+  customerId = "CUST-001"
+  username = "budi123"
+  email = "budi@email.com"
+  phoneNumber = "08123456789"
+  currentTable = "5"
+  lastLogin = "2025-12-12 08:00:00"
+}
+
+' Order instance
+object "order001 : Order" as ord {
+  orderId = "ORD-20251212-001"
+  customerId = "CUST-001"
+  tableNumber = "5"
+  orderTime = "2025-12-12 08:15:30"
+  status = "IN_KITCHEN"
+  subtotal = 39000
+  discount = 5000
+  tax = 4400
+  totalAmount = 38400
+  specialNotes = "Extra pedas, tanpa bawang"
+}
+
+' Order Items
+object "item1 : OrderItem" as item1 {
+  orderItemId = "OI-001"
+  quantity = 2
+  unitPrice = 12000
+  specialNotes = "Extra pedas"
+}
+
+object "item2 : OrderItem" as item2 {
+  orderItemId = "OI-002"
+  quantity = 1
+  unitPrice = 7000
+  specialNotes = ""
+}
+
+object "item3 : OrderItem" as item3 {
+  orderItemId = "OI-003"
+  quantity = 2
+  unitPrice = 4000
+  specialNotes = "Tanpa es"
+}
+
+' Menu Items
+object "indomieGoTel : MenuItem" as menu1 {
+  menuId = "MENU-002"
+  name = "Indomie Goreng Telor"
+  category = "INDOMIE"
+  price = 12000
+  isAvailable = true
+  preparationTime = 7
+}
+
+object "indomieRebus : MenuItem" as menu2 {
+  menuId = "MENU-003"
+  name = "Indomie Rebus Soto"
+  category = "INDOMIE"
+  price = 7000
+  isAvailable = true
+  preparationTime = 5
+}
+
+object "esTeh : MenuItem" as menu3 {
+  menuId = "MENU-010"
+  name = "Es Teh Manis"
+  category = "MINUMAN"
+  price = 4000
+  isAvailable = true
+  preparationTime = 2
+}
+
+' Promo Code
+object "promo1 : PromoCode" as promo {
+  promoId = "PROMO-001"
+  code = "WAKRUNKEREN"
+  discountType = "FIXED_AMOUNT"
+  value = 5000
+  minOrderAmount = 20000
+  isActive = true
+  usageCount = 15
+}
+
+' Payment
+object "payment001 : Payment" as pay {
+  paymentId = "PAY-20251212-001"
+  orderId = "ORD-20251212-001"
+  amount = 38400
+  method = "QRIS"
+  status = "SUCCESS"
+  timestamp = "2025-12-12 08:17:45"
+  externalReference = "MIDTRANS-TRX-789456"
+  isSuccessful = true
+}
+
+' Kitchen Notification
+object "notif001 : KitchenNotification" as notif {
+  notificationId = "NOTIF-001"
+  orderId = "ORD-20251212-001"
+  tableNumber = "5"
+  priority = 2
+  timestamp = "2025-12-12 08:17:50"
+  isPrinted = true
+  isAcknowledged = true
+  acknowledgedAt = "2025-12-12 08:18:00"
+}
+
+' Cart (empty after checkout)
+object "cart001 : Cart" as cart {
+  cartId = "CART-001"
+  customerId = "CUST-001"
+  createdAt = "2025-12-12 08:10:00"
+  expiresAt = "2025-12-12 09:10:00"
+  items = "[]"
+}
+
+' Relationships
+cust --> ord : "places"
+cust --> cart : "has"
+
+ord --> item1
+ord --> item2
+ord --> item3
+
+item1 --> menu1 : "references"
+item2 --> menu2 : "references"
+item3 --> menu3 : "references"
+
+ord --> promo : "uses"
+ord --> pay : "paid by"
+ord --> notif : "triggers"
+
+note top of cust
+  Customer "Budi" sedang menunggu
+  pesanan yang sedang dimasak.
+  Cart sudah kosong karena sudah
+  dikonversi menjadi Order.
+end note
+
+note right of ord
+  Order Summary:
+  - 2x Indomie Goreng Telor = Rp 24.000
+  - 1x Indomie Rebus Soto = Rp 7.000
+  - 2x Es Teh Manis = Rp 8.000
+  
+  Subtotal: Rp 39.000
+  Promo "WAKRUNKEREN": -Rp 5.000
+  Tax (10%): Rp 3.400
+  ───────────────────────
+  Total: Rp 38.400
+end note
+
+note bottom of pay
+  Pembayaran sukses melalui QRIS
+  pada pukul 08:17:45
+  
+  External Reference dari Midtrans
+  untuk tracking dan reconciliation
+end note
+
+note right of notif
+  Notifikasi diterima dapur pada
+  08:17:50, acknowledged pada 08:18:00
+  
+  Estimasi waktu masak:
+  max(7, 5, 2) = 7 menit
+  
+  Target selesai: 08:25:00
+end note
+
+' Another example - Different customer with cart
+object "ani : Customer" as cust2 {
+  customerId = "CUST-002"
+  username = "ani_jakarta"
+  currentTable = "3"
+}
+
+object "cart002 : Cart" as cart2 {
+  cartId = "CART-002"
+  customerId = "CUST-002"
+}
+
+object "cartItem1 : CartItem" as ci1 {
+  cartItemId = "CI-001"
+  quantity = 1
+}
+
+object "cartItem2 : CartItem" as ci2 {
+  cartItemId = "CI-002"
+  quantity = 3
+}
+
+object "rotiKeju : MenuItem" as menu4 {
+  menuId = "MENU-007"
+  name = "Roti Bakar Keju Susu"
+  price = 12000
+}
+
+cust2 --> cart2
+cart2 --> ci1
+cart2 --> ci2
+ci1 --> menu4
+ci2 --> menu3
+
+note left of cust2
+  Customer "Ani" sedang browsing
+  dan belum checkout.
+  
+  Cart berisi:
+  - 1x Roti Bakar Keju = Rp 12.000
+  - 3x Es Teh Manis = Rp 12.000
+  
+  Total: Rp 24.000
+  Status: DRAFT (belum bayar)
+end note
+
+@enduml

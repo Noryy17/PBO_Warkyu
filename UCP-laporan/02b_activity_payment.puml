@@ -1,0 +1,77 @@
+@startuml
+title Activity Diagram 2: Payment Processing Flow
+
+skinparam activityFontSize 12
+skinparam activityArrowFontSize 10
+
+start
+
+note right
+  Prerequisites:
+  Customer on checkout page
+  Cart has items
+  Table number validated
+end note
+
+:Review Order Summary;
+
+if (Has Promo Code?) then (yes)
+  :Input Promo Code;
+  if (Promo Valid?) then (yes)
+    :Calculate Discount;
+    :Update Total;
+    :See Updated Total;
+  else (no)
+    :Show Invalid Promo;
+  endif
+else (no)
+endif
+
+:Select Payment Method;
+
+note right
+  Payment Methods:
+  QRIS / Cash / E-Wallet
+end note
+
+:Input Special Notes;
+:Click Bayar;
+:Generate Order ID;
+:Save Order to Database;
+:Process Payment Request;
+:Generate QR Code;
+:Complete Payment;
+:Verify Payment;
+
+if (Payment Success?) then (no)
+  :Show Payment Failed;
+  if (Retry?) then (yes)
+    :Return to Payment;
+    stop
+  else (no)
+    :Cancel Order;
+    stop
+  endif
+else (yes)
+  :Update Order Status PAID;
+  :Save Payment Record;
+  
+  fork
+    :Send Kitchen Notification;
+  fork again
+    :Send Email Confirmation;
+  fork again
+    :Clear Customer Cart;
+  end fork
+  
+  note right
+    Flow Complete:
+    Payment processed successfully
+    Order submitted to kitchen
+  end note
+  
+  :Redirect to Status Page;
+  stop
+endif
+
+@enduml

@@ -1,0 +1,298 @@
+@startuml
+title Profile Diagram - Digital Wakrun Domain-Specific Extensions
+
+' ============ BASE UML PROFILE ============
+@startuml DigitalWakrunProfile
+
+' Define stereotypes untuk Food and Beverage Domain
+stereotype FoodItem {
+  base class
+  attribute preparationTime: Integer
+  attribute allergens: List<String>
+  attribute calories: Integer
+  constraint "must have valid preparation time"
+}
+
+stereotype Beverage {
+  base class
+  attribute temperature: String <<hot|cold|room>>
+  attribute size: String <<small|medium|large>>
+  constraint "beverage must have temperature"
+}
+
+stereotype PaymentMethod {
+  base class
+  attribute processingFee: Double
+  attribute maxAmount: Double
+  attribute isRealtime: Boolean
+  tagged value "payment_provider"
+  tagged value "settlement_time"
+}
+
+stereotype KitchenEquipment {
+  base component
+  attribute capacity: Integer
+  attribute status: String <<idle|busy|maintenance>>
+  constraint "capacity must be positive"
+}
+
+stereotype TimeSensitive {
+  base class
+  attribute timeout: Duration
+  attribute expiresAt: LocalDateTime
+  constraint "must not be expired"
+}
+
+stereotype CustomerFacing {
+  base class
+  attribute displayName: String
+  attribute displayOrder: Integer
+  constraint "display name required"
+}
+
+stereotype AdminOnly {
+  base class
+  attribute requiresAuth: Boolean
+  attribute requiredRole: String
+  constraint "admin authentication required"
+}
+
+stereotype Auditable {
+  base class
+  attribute createdBy: String
+  attribute createdAt: LocalDateTime
+  attribute updatedBy: String
+  attribute updatedAt: LocalDateTime
+  constraint "audit fields required"
+}
+
+stereotype Cacheable {
+  base class
+  attribute cacheTTL: Integer
+  attribute cacheKey: String
+  tagged value "cache_strategy"
+}
+
+stereotype EventSource {
+  base class
+  attribute eventType: String
+  attribute eventTimestamp: LocalDateTime
+  constraint "must emit domain events"
+}
+
+@enduml
+
+' ============ PROFILE APPLICATION ============
+@startuml ProfileApplication
+
+' Apply stereotypes to domain classes
+class MenuItem <<FoodItem, CustomerFacing, Cacheable, Auditable>> {
+  - menuId: String
+  - name: String
+  - price: Double
+  - preparationTime: Integer = 5
+  - allergens: List<String> = []
+  - calories: Integer
+  - displayOrder: Integer
+  - cacheTTL: Integer = 300
+  
+  + validate(): Boolean
+}
+
+class Beverage <<Beverage, CustomerFacing, Cacheable>> {
+  - beverageId: String
+  - name: String
+  - temperature: String
+  - size: String
+  - price: Double
+  - cacheTTL: Integer = 300
+  
+  + isHot(): Boolean
+  + isCold(): Boolean
+}
+
+class Order <<TimeSensitive, EventSource, Auditable>> {
+  - orderId: String
+  - timeout: Duration = "15 minutes"
+  - expiresAt: LocalDateTime
+  - eventType: String = "OrderEvent"
+  - createdAt: LocalDateTime
+  - updatedAt: LocalDateTime
+  
+  + isExpired(): Boolean
+  + emitEvent(type: String): void
+}
+
+class Payment <<PaymentMethod, EventSource, Auditable>> {
+  - paymentId: String
+  - processingFee: Double
+  - maxAmount: Double = 10000000
+  - isRealtime: Boolean = true
+  - eventType: String = "PaymentEvent"
+  
+  {payment_provider = "Midtrans"}
+  {settlement_time = "T+1"}
+  
+  + process(): Boolean
+}
+
+class PromoCode <<TimeSensitive, Cacheable, Auditable>> {
+  - promoId: String
+  - code: String
+  - expiresAt: LocalDateTime
+  - cacheTTL: Integer = 3600
+  - createdAt: LocalDateTime
+  
+  + isExpired(): Boolean
+  + isValid(): Boolean
+}
+
+class Cart <<TimeSensitive, Cacheable>> {
+  - cartId: String
+  - timeout: Duration = "30 minutes"
+  - expiresAt: LocalDateTime
+  - cacheTTL: Integer = 1800
+  
+  + isExpired(): Boolean
+  + refresh(): void
+}
+
+class AdminPanel <<AdminOnly, Auditable>> {
+  - panelId: String
+  - requiredRole: String = "ADMIN"
+  - requiresAuth: Boolean = true
+  - createdAt: LocalDateTime
+  
+  + checkAccess(user: User): Boolean
+}
+
+component "Kitchen Display System" <<KitchenEquipment>> {
+  capacity = 10
+  status = "idle"
+  
+  + displayOrder(order: Order): void
+  + updateStatus(status: String): void
+}
+
+@enduml
+
+' ============ TAGGED VALUES ============
+@startuml TaggedValuesExample
+
+class QRISPayment <<PaymentMethod>> {
+  {payment_provider = "QRIS"}
+  {settlement_time = "Real-time"}
+  {max_transaction = "Rp 10.000.000"}
+  {min_transaction = "Rp 1.000"}
+  {fee_type = "flat"}
+  {fee_amount = "Rp 0"}
+}
+
+class CashPayment <<PaymentMethod>> {
+  {payment_provider = "Cash"}
+  {settlement_time = "Instant"}
+  {max_transaction = "Unlimited"}
+  {min_transaction = "Rp 0"}
+  {requires_change = "yes"}
+}
+
+class GOPAYPayment <<PaymentMethod>> {
+  {payment_provider = "GOPAY"}
+  {settlement_time = "T+1"}
+  {max_transaction = "Rp 2.000.000"}
+  {cashback_eligible = "yes"}
+  {deep_link = "gojek://"}
+}
+
+@enduml
+
+' ============ CONSTRAINTS ============
+@startuml ConstraintsExample
+
+class MenuItem <<FoodItem>> {
+  - price: Double
+  - preparationTime: Integer
+  
+  constraint pricePositive {
+    price > 0
+  }
+  
+  constraint preparationTimeValid {
+    preparationTime >= 3 AND 
+    preparationTime <= 60
+  }
+  
+  constraint validCategory {
+    category IN ['INDOMIE', 'ROTI_BAKAR', 
+                  'NASI', 'MINUMAN']
+  }
+}
+
+class Order <<TimeSensitive>> {
+  - totalAmount: Double
+  - expiresAt: LocalDateTime
+  
+  constraint notExpired {
+    LocalDateTime.now() < expiresAt
+  }
+  
+  constraint minimumOrder {
+    totalAmount >= 5000
+  }
+  
+  constraint maximumOrder {
+    totalAmount <= 10000000
+  }
+}
+
+class PromoCode <<TimeSensitive>> {
+  - usageCount: Integer
+  - usageLimit: Integer
+  - expiresAt: LocalDateTime
+  
+  constraint notExhausted {
+    usageCount < usageLimit
+  }
+  
+  constraint notExpired {
+    LocalDateTime.now() < expiresAt
+  }
+  
+  constraint validDiscount {
+    (discountType = 'PERCENTAGE' AND 
+      value >= 0 AND value <= 100) OR
+    (discountType = 'FIXED_AMOUNT' AND 
+      value > 0)
+  }
+}
+
+@enduml
+
+' ============ PROFILE NOTES ============
+note as ProfileNote
+  **Profile Diagram** mendefinisikan ekstensi UML
+  yang spesifik untuk domain Food and Beverage:
+  
+  **Stereotypes:**
+  - <<FoodItem>>: Items yang butuh persiapan dapur
+  - <<Beverage>>: Minuman dengan temperature/size
+  - <<PaymentMethod>>: Metode pembayaran
+  - <<TimeSensitive>>: Entities yang bisa expire
+  - <<Cacheable>>: Data yang di-cache di Redis
+  - <<Auditable>>: Entities yang track perubahan
+  - <<EventSource>>: Entities yang emit events
+  - <<AdminOnly>>: Components untuk admin saja
+  
+  **Tagged Values:**
+  - Metadata tambahan untuk payment providers
+  - Settlement time, fees, limits, dll
+  
+  **Constraints:**
+  - Business rules yang harus dipenuhi
+  - Validasi data domain-specific
+  
+  Profile ini membantu standardisasi modeling
+  untuk domain Food and Beverage ordering system.
+end note
+
+@enduml

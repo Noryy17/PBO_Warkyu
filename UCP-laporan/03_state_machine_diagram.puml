@@ -1,0 +1,136 @@
+@startuml
+title State Machine Diagram - Order Lifecycle
+
+[*] --> Created : Customer creates order
+
+state Created {
+  [*] --> DraftOrder
+  DraftOrder : entry / Generate temporary cart
+  DraftOrder : do / Add/remove items
+  DraftOrder : exit / Lock cart items
+}
+
+Created --> PendingPayment : Customer clicks checkout
+
+state PendingPayment {
+  [*] --> ValidatingData
+  ValidatingData : entry / Validate table number
+  ValidatingData : do / Check cart not empty
+  ValidatingData : exit / Generate Order ID
+  
+  ValidatingData --> CalculatingTotal
+  CalculatingTotal : entry / Sum all items
+  CalculatingTotal : do / Apply promo if exists
+  CalculatingTotal : exit / Final total calculated
+  
+  CalculatingTotal --> AwaitingPayment
+  AwaitingPayment : entry / Display payment options
+  AwaitingPayment : do / Wait for user action
+}
+
+PendingPayment --> ProcessingPayment : Customer confirms payment
+
+state ProcessingPayment {
+  [*] --> ConnectingGateway
+  ConnectingGateway : entry / Send request to payment gateway
+  ConnectingGateway : do / Wait for response
+  
+  ConnectingGateway --> VerifyingPayment
+  VerifyingPayment : entry / Receive payment response
+  VerifyingPayment : do / Check payment status
+  VerifyingPayment : exit / Save payment record
+}
+
+ProcessingPayment --> PaymentFailed : Payment rejected
+ProcessingPayment --> Paid : Payment success
+
+PaymentFailed --> PendingPayment : Retry payment
+PaymentFailed --> Cancelled : Customer cancels
+
+state Paid {
+  [*] --> NotificationSent
+  NotificationSent : entry / Send notification to kitchen
+  NotificationSent : do / Save order to database
+  NotificationSent : exit / Clear customer cart
+}
+
+Paid --> InKitchen : Notification delivered
+
+state InKitchen {
+  [*] --> QueuedInKitchen
+  QueuedInKitchen : entry / Add to kitchen queue
+  QueuedInKitchen : do / Display on kitchen screen
+  
+  QueuedInKitchen --> Cooking
+  Cooking : entry / Kitchen starts cooking
+  Cooking : do / Prepare food items
+  Cooking : exit / Quality check
+  
+  Cooking --> ReadyToServe
+  ReadyToServe : entry / Kitchen marks complete
+  ReadyToServe : do / Place on serving counter
+}
+
+InKitchen --> Ready : Kitchen clicks "Selesai"
+
+state Ready {
+  [*] --> AwaitingPickup
+  AwaitingPickup : entry / Notify customer
+  AwaitingPickup : do / Keep warm if needed
+  AwaitingPickup : exit / Hand over to customer
+}
+
+Ready --> Served : Customer picks up order
+
+state Served {
+  [*] --> CustomerEating
+  CustomerEating : entry / Order delivered to table
+  CustomerEating : do / Customer consuming
+}
+
+Served --> Completed : Customer finishes and leaves
+
+state Completed {
+  [*] --> RecordingSales
+  RecordingSales : entry / Save to order history
+  RecordingSales : do / Update sales statistics
+  RecordingSales : exit / Archive order data
+}
+
+Completed --> [*]
+
+state Cancelled {
+  [*] --> ProcessingRefund
+  ProcessingRefund : entry / Check if payment made
+  ProcessingRefund : do / Process refund if paid
+  ProcessingRefund : exit / Send cancellation email
+}
+
+Cancelled --> [*]
+
+' Additional transitions
+PendingPayment --> Cancelled : Timeout (15 mins)
+InKitchen --> Cancelled : Admin cancels (with refund)
+Ready --> Cancelled : Not picked up in 30 mins
+
+note right of ProcessingPayment
+  Payment processing dengan
+  timeout 60 detik.
+  Jika timeout, status = FAILED
+end note
+
+note right of InKitchen
+  Estimasi waktu memasak:
+  - Indomie: 5-7 menit
+  - Roti Bakar: 3-5 menit
+  - Nasi: 7-10 menit
+end note
+
+note right of Cancelled
+  Refund otomatis jika:
+  - Already paid
+  - Cancelled by admin
+  - Timeout di InKitchen
+end note
+
+@enduml

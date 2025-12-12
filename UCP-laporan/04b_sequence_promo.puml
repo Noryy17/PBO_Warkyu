@@ -1,0 +1,80 @@
+@startuml
+title Sequence Diagram 2: Promo Code Application
+
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam maxMessageSize 150
+autonumber
+
+actor Customer
+participant "Checkout UI" as UI
+participant "Order\nController" as OC
+participant "Promo\nService" as PS
+database "Database" as DB
+
+note over Customer, DB
+  **Prerequisites:**
+  Customer is on checkout page
+  Order summary is displayed
+  (See Sequence Diagram 1)
+end note
+
+== Optional: Apply Promo Code ==
+
+Customer -> UI : Input promo code\n"WAKRUNKEREN"
+activate UI
+
+UI -> OC : applyPromo(code, subtotal)
+activate OC
+
+OC -> PS : validatePromo(code, orderTotal)
+activate PS
+
+== Validate Promo Code ==
+
+PS -> DB : SELECT * FROM promo_codes\nWHERE code = ?
+activate DB
+DB --> PS : promoData
+deactivate DB
+
+PS -> PS : Check if active
+PS -> PS : Check expiry date
+PS -> PS : Check min order amount
+PS -> PS : Check usage limit
+
+alt Promo Invalid
+  PS -> PS : Log validation failure
+  PS --> OC : error: "Invalid promo code"
+  deactivate PS
+  
+  OC --> UI : error details
+  deactivate OC
+  
+  UI --> Customer : Show error:\n"Kode promo tidak valid"
+  deactivate UI
+  
+else Promo Valid
+  PS -> PS : Calculate discount
+  PS --> OC : discount = 5000
+  deactivate PS
+  
+  OC -> OC : newTotal = subtotal - discount
+  OC --> UI : success, discount, newTotal
+  deactivate OC
+  
+  UI -> UI : Update order summary
+  UI --> Customer : Show success:\n"Promo berhasil diterapkan!"
+  deactivate UI
+end
+
+note over Customer, DB
+  **Phase 2 Complete:**
+  - Promo code validated
+  - Discount calculated
+  - Total updated
+  
+  **Next:** See Sequence Diagram 3
+  for Order Creation
+end note
+
+@enduml

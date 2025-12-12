@@ -1,0 +1,68 @@
+@startuml
+title Activity Diagram 3: Kitchen Processing Flow
+
+skinparam activityFontSize 12
+skinparam activityArrowFontSize 10
+
+start
+
+note right
+  Prerequisites:
+  Payment successful
+  Order status PAID
+  Notification sent
+end note
+
+:Receive Order Notification;
+:Display on Kitchen Screen;
+:Play Sound Alert;
+:View Order Details;
+
+note right
+  Order includes:
+  Table number / Items
+  Special notes / Order time
+end note
+
+:Add to Cooking Queue;
+:Start Preparing Food;
+:Update Status IN KITCHEN;
+:Cook Food Items;
+
+note right
+  Estimated Times:
+  Indomie 5-7 min
+  Roti Bakar 3-5 min  
+  Nasi 7-10 min
+end note
+
+:Quality Check;
+:Mark as Complete;
+:Update Status READY;
+
+fork
+  :Notify Customer;
+fork again
+  :Update Kitchen Display;
+end fork
+
+:Customer Receives Alert;
+:Customer Goes to Pickup Counter;
+:Hand Over Order;
+:Update Status SERVED;
+:Customer Consumes Food;
+:Customer Leaves Table;
+:Update Status COMPLETED;
+:Save to Order History;
+:Update Sales Statistics;
+
+note right
+  Complete Lifecycle:
+  Order placed -> Payment processed
+  Kitchen prepared -> Customer served
+  Order completed
+end note
+
+stop
+
+@enduml

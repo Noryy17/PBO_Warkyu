@@ -1,0 +1,93 @@
+@startuml
+title Communication Diagram - Checkout Process
+
+' Objects
+object ":Customer" as customer
+object ":CheckoutUI" as ui
+object ":OrderController" as ctrl
+object ":OrderService" as svc
+object ":PromoService" as promo
+object ":PaymentService" as payment
+object ":Database" as db
+object ":PaymentGateway" as gateway
+object ":NotificationService" as notif
+object ":Kitchen" as kitchen
+
+' Links with message numbers
+customer -> ui
+ui -> ctrl
+ctrl -> svc
+ctrl -> promo
+ctrl -> payment
+svc -> db
+promo -> db
+payment -> db
+payment -> gateway
+payment -> notif
+notif -> kitchen
+
+' Messages with sequence numbers
+customer -> ui : 1: clickCheckout()
+ui -> ui : 1.1: validateTable()
+ui -> ui : 1.2: validateCart()
+
+ui -> ctrl : 2: getCartItems()
+ctrl -> svc : 2.1: retrieveCart(customerId)
+svc -> db : 2.1.1: SELECT cart items
+db -> svc : 2.1.2: cartItems[]
+svc -> ctrl : 2.2: cartItems[]
+ctrl -> ui : 2.3: cartItems[]
+
+customer -> ui : 3: inputPromoCode("WAKRUNKEREN")
+ui -> ctrl : 4: applyPromo(code, total)
+ctrl -> promo : 4.1: validatePromo(code, total)
+promo -> db : 4.1.1: SELECT promo
+db -> promo : 4.1.2: promoData
+promo -> ctrl : 4.2: discount = 5000
+ctrl -> ui : 4.3: newTotal
+
+customer -> ui : 5: clickBayar(orderData)
+ui -> ctrl : 6: createOrder(orderData)
+ctrl -> svc : 6.1: createNewOrder(orderData)
+svc -> svc : 6.1.1: generateOrderId()
+svc -> db : 6.1.2: INSERT order
+db -> svc : 6.1.3: orderId
+svc -> db : 6.1.4: INSERT order_items
+svc -> ctrl : 6.2: order
+
+ctrl -> payment : 7: processPayment(orderId, amount)
+payment -> gateway : 7.1: POST /api/payment
+gateway -> payment : 7.2: paymentToken, qrCode
+
+customer -> gateway : 8: completePayment()
+gateway -> payment : 9: webhook: payment success
+payment -> db : 9.1: UPDATE order status
+payment -> db : 9.2: INSERT payment
+
+payment -> notif : 10: sendKitchenNotification(orderId)
+notif -> db : 10.1: SELECT order details
+db -> notif : 10.2: orderDetails
+notif -> kitchen : 10.3: pushNotification(order)
+kitchen -> notif : 10.4: acknowledged
+
+notif -> payment : 10.5: sent
+payment -> ctrl : 11: paymentCompleted
+ctrl -> svc : 12: clearCart(customerId)
+svc -> db : 12.1: DELETE cart
+ctrl -> ui : 13: redirect to status
+
+note right of customer
+  Communication diagram menunjukkan
+  hubungan antar objek dan urutan
+  pesan yang dikirim selama proses
+  checkout dan pembayaran
+end note
+
+note bottom of gateway
+  Nomor pesan menunjukkan
+  urutan interaksi:
+  1, 2, 3, ... = sequential
+  2.1, 2.2 = nested call
+end note
+
+@enduml

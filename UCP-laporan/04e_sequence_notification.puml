@@ -1,0 +1,96 @@
+@startuml
+title Sequence Diagram 5: Kitchen Notification and Completion
+
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam maxMessageSize 150
+autonumber
+
+actor Customer
+participant "Payment\nService" as PS
+participant "Notification\nService" as NS
+participant "Order\nService" as OS
+participant "Kitchen\nDisplay" as Kitchen
+database "Database" as DB
+
+note over Customer, DB
+  **Prerequisites:**
+  Payment successful
+  Order status = PAID
+  Ready to notify kitchen
+end note
+
+== Send Kitchen Notification ==
+
+PS -> NS : sendKitchenNotification(orderId)
+activate NS
+
+NS -> DB : SELECT order details\nWITH items, table, notes
+activate DB
+DB --> NS : orderDetails
+deactivate DB
+
+NS -> NS : Create notification object
+NS -> NS : Set priority based on\nwaiting time and order size
+
+NS -> Kitchen : Push notification via WebSocket\n{orderId, table, items, notes}
+activate Kitchen
+
+Kitchen -> Kitchen : Display order on screen
+Kitchen -> Kitchen : Play sound alert
+Kitchen -> Kitchen : Add to queue
+
+Kitchen --> NS : Acknowledge received
+deactivate Kitchen
+
+NS -> DB : INSERT INTO notifications\n(order_id, sent_at, status)
+activate DB
+DB --> NS : notification logged
+deactivate DB
+
+NS --> PS : Notification sent successfully
+deactivate NS
+
+== Clear Customer Cart ==
+
+PS -> OS : clearCart(customerId)
+activate OS
+
+OS -> DB : DELETE FROM cart_items\nWHERE customer_id = ?
+activate DB
+DB --> OS : cart cleared
+deactivate DB
+
+OS --> PS : Cart emptied
+deactivate OS
+
+== Redirect Customer ==
+
+PS -> Customer : Navigate to\nOrder Status Page
+activate Customer
+
+Customer -> OS : getOrderStatus(orderId)
+activate OS
+
+OS -> DB : SELECT order\nWITH current status
+activate DB
+DB --> OS : orderData
+deactivate DB
+
+OS --> Customer : status: "PAID",\nmessage: "Sedang disiapkan"
+deactivate OS
+deactivate Customer
+
+note over Customer, DB
+  **Complete Flow Finished:**
+  ✅ Order created
+  ✅ Payment processed
+  ✅ Kitchen notified
+  ✅ Cart cleared
+  ✅ Customer redirected
+  
+  **Status:** Order now in kitchen queue.
+  Kitchen will update when ready.
+end note
+
+@enduml

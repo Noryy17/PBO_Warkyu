@@ -1,0 +1,282 @@
+@startuml
+title Package Diagram - Sistem Digital Wakrun Module Organization
+
+' Styling
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor LightYellow
+  BorderColor DarkOrange
+}
+
+' ============ ROOT PACKAGE ============
+package "com.digitalwakrun" {
+  
+  ' ============ PRESENTATION LAYER ============
+  package "presentation" <<Folder>> {
+    package "controllers" {
+      class AuthController
+      class OrderController
+      class MenuController
+      class PaymentController
+      class ReportController
+    }
+    
+    package "middlewares" {
+      class AuthMiddleware
+      class ValidationMiddleware
+      class ErrorHandler
+      class RateLimiter
+    }
+    
+    package "routes" {
+      class AuthRoutes
+      class OrderRoutes
+      class MenuRoutes
+      class PaymentRoutes
+    }
+    
+    package "dto" {
+      class CreateOrderDTO
+      class UpdateMenuDTO
+      class PaymentRequestDTO
+      class LoginDTO
+    }
+  }
+  
+  ' ============ BUSINESS LOGIC LAYER ============
+  package "domain" <<Folder>> {
+    package "entities" {
+      class Customer
+      class Order
+      class MenuItem
+      class Payment
+      class PromoCode
+    }
+    
+    package "valueobjects" {
+      class OrderStatus
+      class PaymentMethod
+      class MenuCategory
+      class Money
+    }
+    
+    package "services" {
+      class OrderService
+      class MenuService
+      class PaymentService
+      class NotificationService
+      class AuthService
+      class ReportService
+    }
+    
+    package "interfaces" {
+      interface IOrderRepository
+      interface IPaymentGateway
+      interface IEmailService
+      interface INotificationService
+    }
+  }
+  
+  ' ============ DATA ACCESS LAYER ============
+  package "infrastructure" <<Folder>> {
+    package "database" {
+      package "repositories" {
+        class OrderRepository
+        class MenuRepository
+        class CustomerRepository
+        class PaymentRepository
+      }
+      
+      package "migrations" {
+        class CreateTablesMigration
+        class AddIndexesMigration
+      }
+      
+      class DatabaseConnection
+      class QueryBuilder
+    }
+    
+    package "cache" {
+      class RedisCache
+      class CacheManager
+      class CacheKeys
+    }
+    
+    package "external" {
+      class MidtransGateway
+      class SendGridEmail
+      class TwilioSMS
+      class AwsS3Storage
+    }
+    
+    package "logging" {
+      class Logger
+      class ErrorLogger
+      class AuditLogger
+    }
+  }
+  
+  ' ============ UTILITY LAYER ============
+  package "utils" <<Folder>> {
+    package "security" {
+      class JWTManager
+      class PasswordHasher
+      class Encryptor
+    }
+    
+    package "validators" {
+      class EmailValidator
+      class PhoneValidator
+      class PriceValidator
+    }
+    
+    package "helpers" {
+      class DateHelper
+      class StringHelper
+      class NumberHelper
+      class FileHelper
+    }
+    
+    package "constants" {
+      class StatusConstants
+      class ErrorMessages
+      class ConfigConstants
+    }
+  }
+  
+  ' ============ SHARED LAYER ============
+  package "shared" <<Folder>> {
+    package "types" {
+      class ApiResponse
+      class ErrorResponse
+      class PaginationMeta
+    }
+    
+    package "events" {
+      class OrderCreatedEvent
+      class PaymentSuccessEvent
+      class OrderStatusChangedEvent
+    }
+    
+    package "exceptions" {
+      class ValidationException
+      class NotFoundException
+      class UnauthorizedException
+      class PaymentException
+    }
+  }
+  
+  ' ============ CONFIG LAYER ============
+  package "config" <<Folder>> {
+    class DatabaseConfig
+    class ServerConfig
+    class PaymentConfig
+    class EmailConfig
+  }
+}
+
+' ============ EXTERNAL PACKAGES ============
+package "External Libraries" {
+  package "express" <<External>> {
+  }
+  
+  package "prisma" <<External>> {
+  }
+  
+  package "jsonwebtoken" <<External>> {
+  }
+  
+  package "bcrypt" <<External>> {
+  }
+  
+  package "midtrans-client" <<External>> {
+  }
+}
+
+' ============ DEPENDENCIES ============
+
+' Presentation dependencies
+presentation ..> domain : <<use>>
+presentation ..> shared : <<use>>
+presentation ..> utils : <<use>>
+
+controllers ..> services : <<use>>
+controllers ..> dto : <<use>>
+controllers ..> exceptions : <<use>>
+
+middlewares ..> security : <<use>>
+middlewares ..> exceptions : <<use>>
+
+' Domain dependencies
+domain ..> shared : <<use>>
+services ..> entities : <<use>>
+services ..> valueobjects : <<use>>
+services ..> interfaces : <<use>>
+services ..> events : <<use>>
+
+' Infrastructure dependencies
+infrastructure ..> domain : <<implement>>
+infrastructure ..> shared : <<use>>
+infrastructure ..> config : <<use>>
+
+repositories ..|> interfaces : <<implement>>
+external ..|> interfaces : <<implement>>
+
+database ..> prisma : <<use>>
+cache ..> utils : <<use>>
+
+' Utils dependencies
+security ..> bcrypt : <<use>>
+security ..> jsonwebtoken : <<use>>
+
+' Config dependencies
+config ..> shared : <<use>>
+
+' Notes
+note right of presentation
+  Layer presentasi menangani:
+  - HTTP requests/responses
+  - Input validation
+  - Authentication/Authorization
+  - Error handling
+end note
+
+note right of domain
+  Domain layer adalah core business logic:
+  - Entities: Domain objects
+  - Services: Business operations
+  - Interfaces: Contracts
+  - Value Objects: Immutable values
+  
+  Tidak boleh depend pada infrastructure!
+end note
+
+note left of infrastructure
+  Infrastructure menyediakan
+  implementasi teknis:
+  - Database access
+  - External APIs
+  - Caching
+  - File storage
+  - Logging
+end note
+
+note bottom of utils
+  Utilities adalah helper functions
+  yang bisa dipakai di semua layer:
+  - Security (JWT, hashing)
+  - Validators
+  - Date/String helpers
+  - Constants
+end note
+
+note top of shared
+  Shared package berisi tipe dan
+  exception yang dipakai di
+  banyak tempat:
+  - Common types
+  - Domain events
+  - Custom exceptions
+end note
+
+@enduml

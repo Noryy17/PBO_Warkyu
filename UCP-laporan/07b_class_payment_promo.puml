@@ -1,0 +1,115 @@
+@startuml
+title Class Diagram 2: Payment and Promo Domain
+
+left to right direction
+skinparam classAttributeIconSize 0
+skinparam class {
+  BackgroundColor<<Entity>> LightGreen
+  BackgroundColor<<ValueObject>> LightBlue
+  BorderColor DarkGreen
+  FontSize 12
+}
+skinparam nodesep 60
+skinparam ranksep 80
+
+together {
+  class Payment <<Entity>> {
+    - paymentId: String
+    - orderId: String
+    - amount: Double
+    - method: PaymentMethod
+    - status: PaymentStatus
+    - timestamp: DateTime
+    - externalRef: String
+    
+    + process(): Boolean
+    + verify(): Boolean
+    + refund(amount): Boolean
+  }
+  
+  class PromoCode <<Entity>> {
+    - promoId: String
+    - code: String
+    - discountType: DiscountType
+    - value: Double
+    - minOrderAmount: Double
+    - isActive: Boolean
+    - expiresAt: DateTime
+    
+    + isValid(total): Boolean
+    + calculateDiscount(total): Double
+  }
+}
+
+together {
+  class Cart <<Entity>> {
+    - cartId: String
+    - customerId: String
+    - createdAt: DateTime
+    - expiresAt: DateTime
+    
+    + addItem(item, qty): void
+    + removeItem(itemId): void
+    + calculateTotal(): Double
+    + convertToOrder(): Order
+  }
+  
+  class CartItem <<ValueObject>> {
+    - menuItem: MenuItem
+    - quantity: Integer
+    - addedAt: DateTime
+    
+    + getSubtotal(): Double
+  }
+}
+
+enum PaymentMethod {
+  QRIS
+  CASH
+  GOPAY
+  OVO
+  DANA
+  SHOPEEPAY
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED_AMOUNT
+  FREE_ITEM
+}
+
+' Relations
+Payment -down-> PaymentMethod
+Payment -down-> PaymentStatus
+PromoCode -down-> DiscountType
+
+Cart "1" *-right-> "0..*" CartItem : contains >
+
+' External references
+class Order <<External>>
+Payment "1" -left-> "1" Order : pays for >
+PromoCode "0..1" -left-> "0..*" Order : applied to >
+Cart "1" .left.> "1" Order : converts to >
+
+note top of Payment
+  Payment Processing:
+  - Multiple payment methods
+  - External gateway integration
+  - Support for refunds
+end note
+
+note bottom of Cart
+  Shopping Cart:
+  - Temporary storage
+  - Time-limited (expires)
+  - Converted to Order on checkout
+end note
+
+@enduml

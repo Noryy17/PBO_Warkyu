@@ -1,0 +1,101 @@
+@startuml
+title Class Diagram 1: Core Domain Model
+
+' Improve readability
+left to right direction
+skinparam classAttributeIconSize 0
+skinparam class {
+  BackgroundColor<<Entity>> LightYellow
+  BorderColor DarkOrange
+  FontSize 12
+}
+skinparam nodesep 60
+skinparam ranksep 80
+
+' Core entities together
+together {
+  class Customer <<Entity>> {
+    - customerId: String
+    - username: String
+    - email: String
+    - phoneNumber: String
+    - currentTable: String
+    
+    + login(): Boolean
+    + viewMenu(): List<MenuItem>
+    + placeOrder(): Order
+    + viewHistory(): List<Order>
+  }
+  
+  class Order <<Entity>> {
+    - orderId: String
+    - tableNumber: String
+    - orderTime: DateTime
+    - status: OrderStatus
+    - totalAmount: Double
+    
+    + addItem(item): void
+    + calculateTotal(): Double
+    + updateStatus(status): void
+  }
+}
+
+together {
+  class OrderItem <<Entity>> {
+    - quantity: Integer
+    - unitPrice: Double
+    - specialNotes: String
+    
+    + calculateSubtotal(): Double
+  }
+  
+  class MenuItem <<Entity>> {
+    - menuId: String
+    - name: String
+    - price: Double
+    - category: MenuCategory
+    - isAvailable: Boolean
+    
+    + getDetails(): String
+    + toggleAvailability(): void
+  }
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT
+  PAID
+  IN_KITCHEN
+  READY
+  COMPLETED
+  CANCELLED
+}
+
+enum MenuCategory {
+  INDOMIE
+  ROTI_BAKAR
+  NASI
+  MINUMAN
+}
+
+' Relationships
+Customer "1" -right-> "0..*" Order : places >
+Order "1" *-down-> "1..*" OrderItem : contains >
+OrderItem "1..*" -right-> "1" MenuItem : references >
+Order -down-> OrderStatus : has status
+
+note right of Order
+  Core Order Management:
+  - Customer creates orders
+  - Order contains multiple items
+  - Each item references a menu
+  - Status tracks lifecycle
+end note
+
+note bottom of MenuItem
+  Menu Items:
+  - Categorized by type
+  - Can be marked unavailable
+  - Reference price for ordering
+end note
+
+@enduml

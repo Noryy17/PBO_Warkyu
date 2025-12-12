@@ -1,0 +1,87 @@
+@startuml
+title Component Diagram 1: High-Level Architecture
+
+left to right direction
+skinparam component {
+  BackgroundColor<<Client>> #E3F2FD
+  BackgroundColor<<Presentation>> #FFF3E0
+  BackgroundColor<<Business>> #E8F5E9
+  BackgroundColor<<Data>> #F3E5F5
+  BorderColor Black
+  FontSize 12
+}
+skinparam nodesep 80
+skinparam ranksep 60
+
+' CLIENT LAYER
+package "Client Layer" <<Client>> {
+  [Web App] as Web
+  [Mobile App] as Mobile
+  [Admin Dashboard] as Admin
+  [Kitchen Display] as Kitchen
+}
+
+' PRESENTATION LAYER
+package "Presentation Layer" <<Presentation>> {
+  [API Gateway] as API
+  [WebSocket Server] as WS
+}
+
+' BUSINESS LOGIC
+package "Business Logic" <<Business>> {
+  [Order Module] as OrderMod
+  [Payment Module] as PayMod
+  [Menu Module] as MenuMod
+  [Auth Module] as AuthMod
+}
+
+' DATA LAYER
+package "Data Access" <<Data>> {
+  [Repositories] as Repo
+  [Cache] as Cache
+  database "PostgreSQL" as DB
+}
+
+' EXTERNAL
+cloud "External Services" {
+  [Payment Gateway] as PayGW
+  [Email Service] as Email
+}
+
+' Connections - simplified
+Web --> API : HTTPS
+Mobile --> API : HTTPS
+Admin --> API : HTTPS
+Kitchen --> WS : WSS
+
+API --> OrderMod
+API --> PayMod
+API --> MenuMod
+API --> AuthMod
+
+OrderMod --> Repo
+PayMod --> Repo
+MenuMod --> Repo
+AuthMod --> Cache
+
+Repo --> DB
+Cache --> DB : sync
+
+PayMod --> PayGW : integrate
+OrderMod --> Email : notify
+
+note right of API
+  **API Gateway:**
+  - Rate limiting
+  - Auth validation
+  - Load balancing
+end note
+
+note bottom of DB
+  **Database:**
+  - PostgreSQL 15
+  - Primary + Replica
+  - Automated backup
+end note
+
+@enduml

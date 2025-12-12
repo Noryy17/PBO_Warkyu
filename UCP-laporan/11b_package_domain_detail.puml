@@ -1,0 +1,74 @@
+@startuml
+title Package Diagram 2: Domain Layer Detail
+
+top to bottom direction
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #E8F5E9
+  BorderColor DarkGreen
+  FontSize 12
+}
+skinparam class {
+  BackgroundColor LightYellow
+  FontSize 10
+}
+
+package "domain" {
+  
+  package "entities" {
+    class Customer
+    class Order
+    class OrderItem
+    class MenuItem
+    class Payment
+    class PromoCode
+  }
+  
+  package "valueobjects" {
+    class OrderStatus <<enum>>
+    class PaymentMethod <<enum>>
+    class MenuCategory <<enum>>
+    class Money <<value>>
+  }
+  
+  package "services" {
+    class OrderService
+    class MenuService
+    class PaymentService
+    class NotificationService
+    class AuthService
+  }
+  
+  package "interfaces" {
+    interface IOrderRepository
+    interface IPaymentGateway
+    interface IEmailService
+    interface INotificationService
+  }
+  
+  ' Internal dependencies
+  services ..> entities : manages
+  services ..> valueobjects : uses
+  services ..> interfaces : depends on
+  entities ..> valueobjects : contains
+}
+
+note right of entities
+  **Core Entities:**
+  Rich domain models with
+  business logic and validation
+end note
+
+note right of services
+  **Domain Services:**
+  Orchestrate business operations
+  that span multiple entities
+end note
+
+note bottom of interfaces
+  **Interfaces:**
+  Abstract external dependencies
+  to maintain domain purity
+end note
+
+@enduml

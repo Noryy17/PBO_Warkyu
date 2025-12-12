@@ -1,0 +1,234 @@
+@startuml
+title Component Diagram - Sistem Digital Wakrun Architecture
+
+skinparam component {
+  BackgroundColor LightYellow
+  BorderColor DarkOrange
+}
+
+skinparam interface {
+  BackgroundColor LightBlue
+  BorderColor Blue
+}
+
+' ============ CLIENT LAYER ============
+package "Client Layer" {
+  [Web Application] as WebApp
+  [Mobile Application] as MobileApp
+  [Kitchen Display App] as KitchenApp
+  [Admin Dashboard] as AdminDash
+}
+
+' ============ PRESENTATION LAYER ============
+package "Presentation Layer" {
+  [API Gateway] as APIGateway
+  [WebSocket Server] as WSServer
+  [Static File Server] as StaticServer
+}
+
+' ============ BUSINESS LOGIC LAYER ============
+package "Business Logic Layer" {
+  package "Authentication Module" {
+    [Auth Service] as AuthSvc
+    [JWT Manager] as JWT
+    [Session Manager] as Session
+  }
+  
+  package "Order Management Module" {
+    [Order Service] as OrderSvc
+    [Cart Service] as CartSvc
+    [Order Validator] as OrderValidator
+  }
+  
+  package "Menu Management Module" {
+    [Menu Service] as MenuSvc
+    [Category Manager] as CategoryMgr
+    [Availability Manager] as AvailMgr
+  }
+  
+  package "Payment Module" {
+    [Payment Service] as PaymentSvc
+    [Payment Processor] as PaymentProc
+    [Refund Manager] as RefundMgr
+  }
+  
+  package "Notification Module" {
+    [Notification Service] as NotifSvc
+    [Email Service] as EmailSvc
+    [SMS Service] as SMSSvc
+    [Push Notification] as PushSvc
+  }
+  
+  package "Reporting Module" {
+    [Report Service] as ReportSvc
+    [Analytics Engine] as Analytics
+    [Export Manager] as ExportMgr
+  }
+}
+
+' ============ DATA ACCESS LAYER ============
+package "Data Access Layer" {
+  [Customer Repository] as CustomerRepo
+  [Order Repository] as OrderRepo
+  [Menu Repository] as MenuRepo
+  [Payment Repository] as PaymentRepo
+  [Promo Repository] as PromoRepo
+  
+  [ORM (Prisma/TypeORM)] as ORM
+  [Cache Manager] as Cache
+}
+
+' ============ EXTERNAL SERVICES ============
+package "External Services" {
+  [Payment Gateway\n(Midtrans)] as PayGateway
+  [Email Provider\n(SendGrid)] as EmailProvider
+  [SMS Provider\n(Twilio)] as SMSProvider
+  [Cloud Storage\n(AWS S3)] as CloudStorage
+}
+
+' ============ INFRASTRUCTURE ============
+package "Infrastructure" {
+  database "PostgreSQL\nDatabase" as DB
+  database "Redis\nCache" as Redis
+  [File Storage] as FileStore
+  [Logging Service] as Logger
+  [Monitoring\n(Prometheus)] as Monitor
+}
+
+' ============ INTERFACES ============
+interface "REST API" as RestAPI
+interface "WebSocket" as WS
+interface "HTTP" as HTTP
+
+interface "IAuthService" as IAuth
+interface "IOrderService" as IOrder
+interface "IPaymentService" as IPayment
+interface "INotificationService" as INotif
+
+' ============ CONNECTIONS ============
+
+' Client to Presentation
+WebApp --> RestAPI
+MobileApp --> RestAPI
+AdminDash --> RestAPI
+KitchenApp --> WS
+
+RestAPI - APIGateway
+WS - WSServer
+HTTP - StaticServer
+
+' API Gateway to Business Logic
+APIGateway --> IAuth
+APIGateway --> IOrder
+APIGateway --> IPayment
+
+IAuth - AuthSvc
+IOrder - OrderSvc
+IPayment - PaymentSvc
+
+' Auth Module
+AuthSvc --> JWT
+AuthSvc --> Session
+AuthSvc --> CustomerRepo
+Session --> Redis
+
+' Order Module
+OrderSvc --> CartSvc
+OrderSvc --> OrderValidator
+OrderSvc --> OrderRepo
+OrderSvc --> NotifSvc
+
+CartSvc --> Cache
+CartSvc --> OrderRepo
+
+' Menu Module
+MenuSvc --> CategoryMgr
+MenuSvc --> AvailMgr
+MenuSvc --> MenuRepo
+
+' Payment Module
+PaymentSvc --> PaymentProc
+PaymentSvc --> RefundMgr
+PaymentSvc --> PaymentRepo
+
+PaymentProc --> PayGateway
+PaymentProc --> NotifSvc
+
+' Notification Module
+NotifSvc --> EmailSvc
+NotifSvc --> SMSSvc
+NotifSvc --> PushSvc
+NotifSvc --> WSServer
+
+EmailSvc --> EmailProvider
+SMSSvc --> SMSProvider
+
+' Reporting Module
+ReportSvc --> Analytics
+ReportSvc --> ExportMgr
+ReportSvc --> OrderRepo
+ReportSvc --> MenuRepo
+
+ExportMgr --> FileStore
+FileStore --> CloudStorage
+
+' Data Access Layer
+CustomerRepo --> ORM
+OrderRepo --> ORM
+MenuRepo --> ORM
+PaymentRepo --> ORM
+PromoRepo --> ORM
+
+ORM --> DB
+Cache --> Redis
+
+' Monitoring
+AuthSvc ..> Logger
+OrderSvc ..> Logger
+PaymentSvc ..> Logger
+NotifSvc ..> Logger
+
+Logger --> Monitor
+
+' Notes
+note right of APIGateway
+  API Gateway handles:
+  - Rate limiting
+  - Request validation
+  - Authentication
+  - Load balancing
+  - CORS
+end note
+
+note bottom of WSServer
+  WebSocket for:
+  - Real-time kitchen updates
+  - Order status notifications
+  - Live dashboard updates
+end note
+
+note left of PayGateway
+  Payment Gateway integration:
+  - QRIS generation
+  - Payment verification
+  - Webhook handling
+  - Transaction logging
+end note
+
+note bottom of DB
+  PostgreSQL untuk:
+  - Transactional data
+  - User management
+  - Order history
+  - Menu catalog
+end note
+
+note bottom of Redis
+  Redis untuk:
+  - Session storage
+  - Cart data (temporary)
+  - API response caching
+  - Real-time counters
+end note
+
+@enduml

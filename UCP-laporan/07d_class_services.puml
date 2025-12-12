@@ -1,0 +1,111 @@
+@startuml
+title Class Diagram 4: Service Layer
+
+top to bottom direction
+skinparam classAttributeIconSize 0
+skinparam class {
+  BackgroundColor<<Service>> #E8F4F8
+  BackgroundColor<<Interface>> #FFF9E6
+  BorderColor DarkBlue
+  FontSize 12
+}
+skinparam nodesep 70
+skinparam ranksep 60
+
+' Interfaces
+together {
+  interface IOrderRepository <<Interface>> {
+    + save(order): Order
+    + findById(id): Order
+    + findByCustomer(customerId): List
+    + update(order): Boolean
+    + delete(id): Boolean
+  }
+  
+  interface IPaymentGateway <<Interface>> {
+    + createPayment(data): PaymentToken
+    + verifyPayment(id): Boolean
+    + refundPayment(id, amount): Boolean
+    + handleWebhook(data): void
+  }
+}
+
+' Services
+class OrderService <<Service>> {
+  - repository: IOrderRepository
+  
+  + createOrder(data): Order
+  + getOrderById(id): Order
+  + updateStatus(id, status): Boolean
+  + cancelOrder(id): Boolean
+  + getOrdersByCustomer(customerId): List
+}
+
+class PaymentService <<Service>> {
+  - gateway: IPaymentGateway
+  - orderService: OrderService
+  
+  + initiatePayment(order, method): Payment
+  + verifyPayment(paymentId): Boolean
+  + processRefund(paymentId, amount): Boolean
+  + handleWebhook(data): void
+}
+
+class MenuService <<Service>> {
+  - menuRepository: IMenuRepository
+  
+  + getAllMenus(): List<MenuItem>
+  + getAvailableMenus(): List<MenuItem>
+  + createMenu(data): MenuItem
+  + updateMenu(id, data): Boolean
+  + setAvailability(id, available): Boolean
+}
+
+class AuthService <<Service>> {
+  - jwtSecret: String
+  
+  + login(username, password): Token
+  + logout(token): Boolean
+  + validateToken(token): Boolean
+  + hashPassword(password): String
+}
+
+' Relationships
+OrderService ..> IOrderRepository : uses >
+PaymentService ..> IPaymentGateway : uses >
+PaymentService --> OrderService : depends on >
+
+' External entities (simplified)
+class Order <<Entity>>
+class Payment <<Entity>>
+class MenuItem <<Entity>>
+
+OrderService .down.> Order : manages >
+PaymentService .down.> Payment : manages >
+MenuService .down.> MenuItem : manages >
+
+note top of OrderService
+  Service Layer Pattern:
+  - Business logic encapsulation
+  - Repository pattern for data access
+  - Dependency injection ready
+  - Transaction management
+end note
+
+note right of IOrderRepository
+  Repository Interface:
+  - Abstracts data access
+  - Enables testing with mocks
+  - Can swap implementations
+  (SQL, NoSQL, InMemory)
+end note
+
+note left of IPaymentGateway
+  Gateway Interface:
+  - External service abstraction
+  - Multiple providers support
+  (Midtrans, Xendit, Doku)
+  - Webhook handling
+end note
+
+@enduml

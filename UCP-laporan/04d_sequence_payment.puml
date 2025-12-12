@@ -1,0 +1,86 @@
+@startuml
+title Sequence Diagram 4: Payment Processing
+
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam maxMessageSize 150
+autonumber
+
+actor Customer
+participant "Checkout UI" as UI
+participant "Payment\nService" as PS
+participant "Payment\nGateway" as Gateway
+database "Database" as DB
+
+note over Customer, DB
+  **Prerequisites:**
+  Order created with ID
+  Payment method selected
+  Status = PENDING_PAYMENT
+end note
+
+== Initiate Payment ==
+
+UI -> PS : processPayment(\norderId, amount, method)
+activate PS
+
+PS -> Gateway : POST /api/payment/create\n{orderId, amount, method}
+activate Gateway
+
+Gateway -> Gateway : Generate payment token
+Gateway -> Gateway : Create QR code (if QRIS)
+
+Gateway --> PS : paymentToken,\nqrCode, expiryTime
+deactivate Gateway
+
+PS --> UI : Show payment interface
+deactivate PS
+
+== Customer Completes Payment ==
+
+UI --> Customer : Display QR code /\npayment instructions
+Customer -> Gateway : Scan QR /\nComplete payment
+activate Gateway
+
+Gateway -> Gateway : Verify payment
+Gateway -> Gateway : Process transaction
+
+== Payment Webhook ==
+
+Gateway -> PS : POST /webhook/payment-success\n{orderId, paymentId, status}
+deactivate Gateway
+activate PS
+
+PS -> DB : UPDATE orders\nSET status = 'PAID'\nWHERE order_id = ?
+activate DB
+DB --> PS : rows updated
+deactivate DB
+
+PS -> DB : INSERT INTO payments\n(order_id, amount,\n method, status, ref)
+activate DB
+DB --> PS : payment record saved
+deactivate DB
+
+PS -> PS : Log payment success
+
+PS --> Gateway : Acknowledge webhook:\nHTTP 200 OK
+deactivate PS
+
+== Notify Customer ==
+
+PS -> UI : Payment confirmed
+activate UI
+UI --> Customer : Show success:\n"Pembayaran Berhasil!"
+deactivate UI
+
+note over Customer, DB
+  **Phase 4 Complete:**
+  - Payment processed successfully
+  - Order status updated to PAID
+  - Payment record saved
+  
+  **Next:** See Sequence Diagram 5
+  for Kitchen Notification
+end note
+
+@enduml

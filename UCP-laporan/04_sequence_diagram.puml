@@ -1,0 +1,196 @@
+@startuml
+title Sequence Diagram - Proses Checkout dan Pembayaran
+
+actor Customer
+participant "UI: MenuPage" as MenuUI
+participant "UI: CheckoutPage" as CheckoutUI
+participant "Controller:\nOrderController" as OrderCtrl
+participant "Service:\nOrderService" as OrderSvc
+participant "Service:\nPromoService" as PromoSvc
+participant "Service:\nPaymentService" as PaymentSvc
+participant "External:\nPaymentGateway" as Gateway
+participant "Service:\nNotificationService" as NotifSvc
+participant "Database" as DB
+participant "Kitchen Display" as Kitchen
+
+== Fase 1: Checkout ==
+Customer -> MenuUI : Klik "Checkout"
+
+activate MenuUI
+MenuUI -> MenuUI : Validate nomor meja
+MenuUI -> MenuUI : Validate cart not empty
+
+MenuUI -> CheckoutUI : Navigate to checkout
+deactivate MenuUI
+
+activate CheckoutUI
+CheckoutUI -> OrderCtrl : getCartItems()
+activate OrderCtrl
+OrderCtrl -> OrderSvc : retrieveCart(customerId)
+activate OrderSvc
+OrderSvc -> DB : SELECT cart items
+activate DB
+DB --> OrderSvc : cartItems[]
+deactivate DB
+OrderSvc --> OrderCtrl : cartItems[]
+deactivate OrderSvc
+OrderCtrl --> CheckoutUI : cartItems[]
+deactivate OrderCtrl
+
+CheckoutUI -> CheckoutUI : Display items and calculate subtotal
+CheckoutUI --> Customer : Show checkout page
+deactivate CheckoutUI
+
+== Fase 2: Apply Promo (Opsional) ==
+Customer -> CheckoutUI : Input promo code "WAKRUNKEREN"
+activate CheckoutUI
+CheckoutUI -> OrderCtrl : applyPromo(code, total)
+activate OrderCtrl
+OrderCtrl -> PromoSvc : validatePromo(code, total)
+
+activate PromoSvc
+PromoSvc -> DB : SELECT promo WHERE code = ?
+activate DB
+DB --> PromoSvc : promoData
+deactivate DB
+
+PromoSvc -> PromoSvc : Check if active
+PromoSvc -> PromoSvc : Check min order amount
+PromoSvc -> PromoSvc : Calculate discount
+
+alt Promo Valid
+    PromoSvc --> OrderCtrl : discount = 5000
+    OrderCtrl -> OrderCtrl : total = subtotal - discount
+    OrderCtrl --> CheckoutUI : success, newTotal
+    CheckoutUI --> Customer : "Promo berhasil diterapkan!"
+else Promo Invalid
+    PromoSvc --> OrderCtrl : error: "Invalid promo"
+    OrderCtrl --> CheckoutUI : error
+    CheckoutUI --> Customer : "Kode promo tidak valid"
+end
+deactivate PromoSvc
+deactivate OrderCtrl
+deactivate CheckoutUI
+
+== Fase 3: Generate Order ==
+Customer -> CheckoutUI : Select payment method and input notes
+activate CheckoutUI
+Customer -> CheckoutUI : Klik "Bayar"
+
+CheckoutUI -> OrderCtrl : createOrder(orderData)
+activate OrderCtrl
+
+OrderCtrl -> OrderSvc : createNewOrder(orderData)
+activate OrderSvc
+
+OrderSvc -> OrderSvc : generateOrderId()
+note right: Format: ORD-20251212-001
+
+OrderSvc -> DB : INSERT INTO orders
+activate DB
+DB --> OrderSvc : orderId
+deactivate DB
+
+OrderSvc -> DB : INSERT INTO order_items
+activate DB
+DB --> OrderSvc : success
+deactivate DB
+
+OrderSvc --> OrderCtrl : order object
+deactivate OrderSvc
+
+OrderCtrl --> CheckoutUI : order created
+deactivate OrderCtrl
+deactivate CheckoutUI
+
+== Fase 4: Process Payment ==
+CheckoutUI -> PaymentSvc : processPayment(orderId, amount, method)
+activate PaymentSvc
+
+PaymentSvc -> Gateway : POST /api/payment/create
+activate Gateway
+Gateway -> Gateway : Generate payment token
+Gateway -> Gateway : Create QR code (if QRIS)
+Gateway --> PaymentSvc : paymentToken, qrCode
+deactivate Gateway
+
+PaymentSvc --> CheckoutUI : Show payment interface
+
+Customer -> Gateway : Scan QR / Complete payment
+activate Gateway
+Gateway -> Gateway : Verify payment
+Gateway -> PaymentSvc : Webhook: payment success
+activate PaymentSvc
+
+PaymentSvc -> DB : UPDATE orders\nSET status = 'PAID'
+activate DB
+DB --> PaymentSvc : success
+deactivate DB
+
+PaymentSvc -> DB : INSERT INTO payments
+activate DB
+DB --> PaymentSvc : payment record saved
+deactivate DB
+
+PaymentSvc --> Gateway : Acknowledge webhook
+deactivate Gateway
+
+== Fase 5: Send Notification ==
+PaymentSvc -> NotifSvc : sendKitchenNotification(orderId)
+activate NotifSvc
+
+NotifSvc -> DB : SELECT order details
+activate DB
+DB --> NotifSvc : orderDetails
+deactivate DB
+
+NotifSvc -> Kitchen : Push notification\n(WebSocket/SSE)
+activate Kitchen
+Kitchen -> Kitchen : Display order on screen
+Kitchen -> Kitchen : Play sound alert
+Kitchen --> NotifSvc : Acknowledged
+deactivate Kitchen
+
+NotifSvc -> NotifSvc : Mark notification as sent
+
+NotifSvc --> PaymentSvc : notification sent
+deactivate NotifSvc
+
+PaymentSvc --> OrderCtrl : payment completed
+deactivate PaymentSvc
+activate OrderCtrl
+
+OrderCtrl -> OrderSvc : clearCart(customerId)
+activate OrderSvc
+OrderSvc -> DB : DELETE FROM cart
+activate DB
+DB --> OrderSvc : success
+deactivate DB
+OrderSvc --> OrderCtrl : cart cleared
+deactivate OrderSvc
+
+OrderCtrl --> CheckoutUI : redirect to status page
+deactivate OrderCtrl
+
+== Fase 6: Order Status ==
+CheckoutUI -> Customer : Navigate to Order Status
+activate CheckoutUI
+CheckoutUI -> OrderCtrl : getOrderStatus(orderId)
+activate OrderCtrl
+OrderCtrl -> DB : SELECT order status
+activate DB
+DB --> OrderCtrl : status: "PAID"
+deactivate DB
+OrderCtrl --> CheckoutUI : orderStatus
+deactivate OrderCtrl
+CheckoutUI --> Customer : Display "Pesanan sedang disiapkan"
+deactivate CheckoutUI
+
+note over Customer, Kitchen
+  Proses selanjutnya:
+  1. Dapur memasak (status = IN_KITCHEN)
+  2. Selesai masak (status = READY)
+  3. Customer ambil (status = COMPLETED)
+end note
+
+@enduml
